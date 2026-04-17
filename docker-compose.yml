@@ -1,0 +1,36 @@
+# Optional services for the roadmap. DuckDB runs in-process and needs none of these.
+#
+# Usage (once wired up in code):
+#   docker compose up -d postgres mlflow
+#
+# Leave commented-out until the Postgres + MLflow toggles land in config.
+
+version: "3.9"
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: sentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.12.1
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlflow-artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-artifacts:/mlflow-artifacts
+
+volumes:
+  pgdata:
+  mlflow-artifacts:

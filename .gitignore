@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+wheels/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables / secrets
+.env
+.env.local
+*.secret
+
+# Data files (keep folder structure, not contents)
+data/raw/*
+data/processed/*
+data/*.duckdb
+data/*.duckdb.wal
+data/*.parquet
+!data/**/.gitkeep
+
+# Models / artifacts
+artifacts/
+mlruns/
+*.pkl
+*.joblib
+
+# Reports
+reports/*.csv
+reports/*.html
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Type checker / linter caches
+.mypy_cache/
+.ruff_cache/

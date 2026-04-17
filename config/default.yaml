@@ -1,0 +1,42 @@
+# Sentinel default configuration.
+# Override by (a) editing this file, (b) setting env vars (see .env.example),
+# or (c) passing --config path/to/other.yaml on the CLI.
+
+ingestion:
+  market:
+    default_start: "2015-01-01"
+    default_interval: "1d"      # 1d, 1h, etc. (yfinance valid intervals)
+  reddit:
+    subreddits:
+      - wallstreetbets
+      - stocks
+      - investing
+    max_posts_per_run: 500
+  twitter:
+    max_tweets_per_run: 500
+
+features:
+  returns:
+    windows: [1, 5, 10, 20]
+  moving_averages:
+    sma_windows: [5, 10, 20, 50, 200]
+    ema_windows: [12, 26]
+  volatility:
+    windows: [5, 10, 20]
+  momentum:
+    windows: [5, 10, 20]
+  volume:
+    windows: [5, 20]
+
+targets:
+  # Direction target: sign of return over the next `horizon` days
+  horizon_days: 1
+  # Regression target uses the same horizon
+
+modeling:
+  default_model: "logistic"    # logistic | random_forest
+  random_state: 42
+  test_fraction: 0.2           # final held-out tail
+  walk_forward:
+    n_splits: 5
+    min_train_size: 252        # ~1 trading year
