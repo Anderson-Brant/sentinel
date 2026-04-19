@@ -4,6 +4,14 @@ All notable changes to Sentinel will be documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-04-19
+### Fixed
+- `sentinel demo` no longer crashes with `AttributeError: 'OptionInfo' object 
+has no attribute 'decode'`. The demo wrapper now passes explicit values for every 
+Typer-option-defaulted parameter when it calls sub-commands as plain Python 
+functions, so unresolved `OptionInfo` sentinels never reach MLflow.
+
+
 ## [0.1.0] — 2026-04-18
 
 Initial public release. Sentinel is feature-complete against its v0.1
@@ -98,3 +106,4 @@ durable run log, and a containerized deployment story.
 - Experimental design + intended study protocol in `docs/methodology.md`.
 
 [0.1.0]: https://github.com/Anderson-Brant/sentinel/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Anderson-Brant/sentinel/releases/tag/v0.1.1
