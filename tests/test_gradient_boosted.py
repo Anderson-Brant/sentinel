@@ -43,6 +43,9 @@ def _make_fake_classifier_module(class_name: str):
             self._fitted = True
             return self
 
+        def __sklearn_is_fitted__(self):
+            return self._fitted
+
         def predict(self, X):
             return [0] * len(X)
 
