@@ -17,6 +17,7 @@ import sys
 import types
 
 import pytest
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 from sentinel.models import gradient_boosted as gb
 from sentinel.models.baseline import SUPPORTED, build_classifier
@@ -31,7 +32,7 @@ def _make_fake_classifier_module(class_name: str):
     that records the kwargs it was constructed with."""
     captured: dict[str, dict] = {"kwargs": {}}
 
-    class FakeClassifier:
+    class FakeClassifier(ClassifierMixin, BaseEstimator):
         def __init__(self, **kwargs):
             captured["kwargs"] = dict(kwargs)
             self.kwargs = dict(kwargs)

@@ -7,6 +7,7 @@ beat the benchmark" — that's the evaluation layer's job.
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
 from sentinel.config import load_config
 from sentinel.features.pipeline import build_feature_table, feature_columns
@@ -52,7 +53,7 @@ def test_forward_return_and_target_alignment(synthetic_prices):
     target = directional_target(synthetic_prices, horizon=1)
     # Last row's forward return is unknown → NaN (target should be NA too).
     assert np.isnan(fr.iloc[-1])
-    assert target.iloc[-1] != target.iloc[-1]  # NA comparison → False
+    assert pd.isna(target.iloc[-1])  # NA comparison → False
     # Direction matches sign of forward return where known.
     known = fr.dropna()
     mapped = (known > 0).astype(int)
