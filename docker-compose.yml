@@ -1,15 +1,69 @@
-# Optional services for the roadmap. DuckDB runs in-process and needs none of these.
+# Sentinel — docker-compose orchestration.
 #
-# Usage (once wired up in code):
-#   docker compose up -d postgres mlflow
+# Default (DuckDB, zero-setup):
+#     docker compose up -d sentinel
 #
-# Leave commented-out until the Postgres + MLflow toggles land in config.
-
-version: "3.9"
+# Postgres / TimescaleDB backend:
+#     docker compose --profile postgres up -d
+#
+# MLflow tracking server (browse at http://localhost:5000):
+#     docker compose --profile mlflow up -d
+#
+# All together:
+#     docker compose --profile postgres --profile mlflow up -d
+#
+# One-shot CLI invocation against the built image:
+#     docker compose run --rm sentinel demo SPY
 
 services:
+  # ---------------------------------------------------------------------------
+  # Sentinel — scheduler daemon by default. Storage backend is picked up from
+  # env vars (SENTINEL_STORAGE_BACKEND defaults to "duckdb"). The same image
+  # is reused for both DuckDB and Postgres modes.
+  # ---------------------------------------------------------------------------
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sentinel:latest
+    environment:
+      SENTINEL_LOG_LEVEL: ${SENTINEL_LOG_LEVEL:-INFO}
+      SENTINEL_DB_PATH: /data/sentinel.duckdb
+      # Backend selector — override at the shell to switch modes:
+      #   SENTINEL_STORAGE_BACKEND=postgres docker compose --profile postgres up
+      SENTINEL_STORAGE_BACKEND: ${SENTINEL_STORAGE_BACKEND:-duckdb}
+      SENTINEL_POSTGRES_DSN: ${SENTINEL_POSTGRES_DSN:-postgresql://sentinel:sentinel@postgres:5432/sentinel}
+      SENTINEL_POSTGRES_TIMESCALE: ${SENTINEL_POSTGRES_TIMESCALE:-true}
+      # Pass through any credentials the user has in their shell / .env.
+      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID:-}
+      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET:-}
+      REDDIT_USER_AGENT: ${REDDIT_USER_AGENT:-}
+      TWITTER_BEARER_TOKEN: ${TWITTER_BEARER_TOKEN:-}
+    volumes:
+      - sentinel-data:/data             # DuckDB file + any CLI outputs
+      - sentinel-mlruns:/app/mlruns     # MLflow local backend when not using the server
+    # Wait for Postgres when it's part of the active profile. ``required: false``
+    # keeps this harmless when running in DuckDB mode (no postgres service).
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "sentinel", "version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Postgres + TimescaleDB — opt-in sidecar. Sentinel's hypertable creation is
+  # soft-fallback: if the Timescale extension is missing, the schema drops to
+  # plain Postgres tables.
+  # ---------------------------------------------------------------------------
   postgres:
     image: timescale/timescaledb:latest-pg16
+    profiles: ["postgres"]
     environment:
       POSTGRES_USER: sentinel
       POSTGRES_PASSWORD: sentinel
@@ -17,20 +71,44 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - sentinel-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinel"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # MLflow tracking server — opt-in. Sentinel's --track flag logs to whatever
+  # MLFLOW_TRACKING_URI points at; setting it here lets the scheduler daemon
+  # use the server instead of local file-based tracking.
+  # ---------------------------------------------------------------------------
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.12.1
+    profiles: ["mlflow"]
     command: >
       mlflow server
       --host 0.0.0.0
-      --backend-store-uri sqlite:///mlflow.db
-      --default-artifact-root /mlflow-artifacts
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    environment:
+      MLFLOW_TRACKING_URI: http://0.0.0.0:5000
     ports:
       - "5000:5000"
     volumes:
-      - mlflow-artifacts:/mlflow-artifacts
+      - mlflow-data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
 
 volumes:
-  pgdata:
-  mlflow-artifacts:
+  sentinel-data:       # DuckDB file + outputs; persists across restarts
+  sentinel-mlruns:     # Local MLflow runs when the tracking server isn't used
+  sentinel-pg:         # Postgres data directory (postgres profile only)
+  mlflow-data:         # MLflow server SQLite + artifacts (mlflow profile only)

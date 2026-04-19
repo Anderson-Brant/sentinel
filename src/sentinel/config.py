@@ -47,6 +47,15 @@ class Secrets(BaseSettings):
     db_path: str = Field(default="data/sentinel.duckdb", alias="SENTINEL_DB_PATH")
     log_level: str = Field(default="INFO", alias="SENTINEL_LOG_LEVEL")
 
+    # Storage backend. "duckdb" keeps the zero-setup local behavior;
+    # "postgres" switches to the Postgres / TimescaleDB backend using
+    # `postgres_dsn`.
+    storage_backend: str = Field(default="duckdb", alias="SENTINEL_STORAGE_BACKEND")
+    postgres_dsn: str | None = Field(default=None, alias="SENTINEL_POSTGRES_DSN")
+    postgres_enable_timescale: bool = Field(
+        default=True, alias="SENTINEL_POSTGRES_TIMESCALE"
+    )
+
     reddit_client_id: str | None = Field(default=None, alias="REDDIT_CLIENT_ID")
     reddit_client_secret: str | None = Field(default=None, alias="REDDIT_CLIENT_SECRET")
     reddit_user_agent: str | None = Field(default=None, alias="REDDIT_USER_AGENT")
@@ -73,10 +82,25 @@ class IngestionTwitterConfig(BaseModel):
     max_tweets_per_run: int = 500
 
 
+class IngestionCryptoConfig(BaseModel):
+    """Crypto OHLCV ingestion via CCXT.
+
+    ``default_quote`` is the exchange-side quote currency (most venues trade
+    USDT/USDC, not raw USD). Symbols are stored in yfinance-style ``BTC-USD``
+    so downstream features are asset-class agnostic.
+    """
+
+    default_start: str = "2020-01-01"
+    default_interval: str = "1d"
+    default_exchange: str = "binance"
+    default_quote: str = "USDT"
+
+
 class IngestionConfig(BaseModel):
     market: IngestionMarketConfig = Field(default_factory=IngestionMarketConfig)
     reddit: IngestionRedditConfig = Field(default_factory=IngestionRedditConfig)
     twitter: IngestionTwitterConfig = Field(default_factory=IngestionTwitterConfig)
+    crypto: IngestionCryptoConfig = Field(default_factory=IngestionCryptoConfig)
 
 
 class FeaturesConfig(BaseModel):
@@ -105,11 +129,31 @@ class ModelingConfig(BaseModel):
     walk_forward: WalkForwardConfig = Field(default_factory=WalkForwardConfig)
 
 
+class ScheduledJobConfig(BaseModel):
+    """One entry in ``scheduler.jobs``. The ``kind`` string maps to a job
+    function in :mod:`sentinel.scheduling.registry`; ``params`` is forwarded
+    verbatim as kwargs."""
+
+    name: str
+    kind: str
+    interval: str | int | float  # "15m", "1h", bare seconds — parsed at load
+    params: dict[str, Any] = Field(default_factory=dict)
+    enabled: bool = True
+
+
+class SchedulerConfig(BaseModel):
+    """``scheduler:`` section. Empty by default — the section is optional."""
+
+    jobs: list[ScheduledJobConfig] = Field(default_factory=list)
+    tick_seconds: int = 30
+
+
 class SentinelConfig(BaseModel):
     ingestion: IngestionConfig = Field(default_factory=IngestionConfig)
     features: FeaturesConfig = Field(default_factory=FeaturesConfig)
     targets: TargetsConfig = Field(default_factory=TargetsConfig)
     modeling: ModelingConfig = Field(default_factory=ModelingConfig)
+    scheduler: SchedulerConfig = Field(default_factory=SchedulerConfig)
 
 
 def _resolve_config_path(path: str | Path | None) -> Path:

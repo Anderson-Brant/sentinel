@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sentinel"
 version = "0.1.0"
-description = "Market intelligence & stock prediction platform combining price, volume, and (soon) social sentiment signals."
+description = "Market intelligence & stock prediction platform combining price, volume, and social sentiment signals."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
@@ -49,22 +49,43 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Social ingestion (roadmap)
+# Social ingestion: Reddit (praw) + X/Twitter (tweepy v2) + VADER scorer
 social = [
     "praw>=7.7",
     "tweepy>=4.14",
     "vaderSentiment>=3.3.2",
 ]
 
-# Heavier models (roadmap)
+# Gradient-boosted models (XGBoost, LightGBM)
 ml-extra = [
     "xgboost>=2.0",
     "lightgbm>=4.3",
 ]
 
-# Experiment tracking (roadmap)
+# Finance-tuned transformer sentiment (finBERT via HuggingFace)
+transformers = [
+    "transformers>=4.40",
+    "torch>=2.2",
+]
+
+# Experiment tracking (MLflow)
 tracking = [
     "mlflow>=2.12",
+]
+
+# Feature importance (SHAP)
+explain = [
+    "shap>=0.45",
+]
+
+# Postgres / TimescaleDB storage backend (opt-in; DuckDB is the default)
+postgres = [
+    "psycopg[binary]>=3.1",
+]
+
+# Crypto OHLCV ingestion via CCXT (unified exchange interface)
+crypto = [
+    "ccxt>=4.3",
 ]
 
 dev = [
@@ -79,8 +100,8 @@ dev = [
 sentinel = "sentinel.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/brant-anderson/sentinel"
-Repository = "https://github.com/brant-anderson/sentinel"
+Homepage = "https://github.com/Anderson-Brant/sentinel"
+Repository = "https://github.com/Anderson-Brant/sentinel"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sentinel"]

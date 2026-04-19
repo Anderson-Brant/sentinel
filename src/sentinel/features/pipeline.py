@@ -20,8 +20,26 @@ from sentinel.utils.logging import get_logger
 log = get_logger(__name__)
 
 
-def build_feature_table(prices: pd.DataFrame, cfg: SentinelConfig) -> pd.DataFrame:
+def build_feature_table(
+    prices: pd.DataFrame,
+    cfg: SentinelConfig,
+    *,
+    sentiment: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     """Return a wide table: features ⨯ target, indexed by date.
+
+    Parameters
+    ----------
+    prices : OHLCV table indexed by date.
+    cfg : loaded :class:`SentinelConfig`.
+    sentiment : optional per-date sentiment feature block (see
+        :func:`sentinel.features.sentiment.sentiment_features_for_symbol`).
+        When provided, its columns are left-joined onto the technical block.
+        Missing sentiment days have ``reddit_mention_count`` filled with 0 so
+        we keep the price row instead of dropping it — the remaining sentiment
+        columns may still be NaN, which the modeling layer can drop or
+        impute. Passing ``None`` (the default) keeps the MVP technical-only
+        behavior and lets us run the ablation "technical vs hybrid" cleanly.
 
     Rows with NaN features or unknown targets are dropped so the modeling layer
     can assume a clean matrix.
@@ -48,6 +66,25 @@ def build_feature_table(prices: pd.DataFrame, cfg: SentinelConfig) -> pd.DataFra
     # (SMAs, EMAs — we keep the normalized `close_to_sma_*` versions instead).
     level_cols = [c for c in feats.columns if c.startswith(("sma_", "ema_")) and "over" not in c]
     feats = feats.drop(columns=level_cols, errors="ignore")
+
+    # Optional sentiment block.
+    if sentiment is not None and not sentiment.empty:
+        from sentinel.features.sentiment import MENTION_COUNT_COLS
+
+        sent = sentiment.copy()
+        sent.index = pd.to_datetime(sent.index)
+        # Align to price calendar. Missing days: 0 mentions, 0 sentiment.
+        sent = sent.reindex(feats.index)
+        # Mention counts (reddit + twitter) default to 0 on no-post days.
+        for c in MENTION_COUNT_COLS:
+            if c in sent.columns:
+                sent[c] = sent[c].fillna(0)
+        # Other sentiment columns stay NaN on no-post days — the final dropna
+        # would kill every row, so we neutralize them to 0 here (mean/ratios).
+        for c in sent.columns:
+            if c not in MENTION_COUNT_COLS:
+                sent[c] = sent[c].fillna(0.0)
+        feats = pd.concat([feats, sent], axis=1)
 
     # Targets.
     horizon = cfg.targets.horizon_days

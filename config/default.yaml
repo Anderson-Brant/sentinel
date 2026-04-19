@@ -14,6 +14,11 @@ ingestion:
     max_posts_per_run: 500
   twitter:
     max_tweets_per_run: 500
+  crypto:
+    default_start: "2020-01-01"
+    default_interval: "1d"            # CCXT timeframe: 1d, 1h, 5m, ...
+    default_exchange: "binance"       # any ccxt exchange id (coinbase, kraken, ...)
+    default_quote: "USDT"             # exchange-side quote; stored as "-USD" key
 
 features:
   returns:
@@ -40,3 +45,60 @@ modeling:
   walk_forward:
     n_splits: 5
     min_train_size: 252        # ~1 trading year
+
+# ---------------------------------------------------------------------------
+# Recurring ingestion / feature jobs, executed by `sentinel schedule run`.
+#
+# Each job has:
+#   name     : unique identifier, used for logs and filtering
+#   kind     : one of ingest-prices | ingest-reddit | ingest-twitter |
+#              ingest-crypto | score-sentiment | build-features
+#              (see sentinel.scheduling.registry)
+#   interval : "30s", "15m", "1h", "1d", or a bare number of seconds
+#   params   : forwarded as **kwargs to the job function
+#   enabled  : optional, defaults to true
+#
+# Uncomment and adapt to your tickers. Run once on demand:
+#     sentinel schedule run --once
+# Or as a daemon:
+#     sentinel schedule run --forever
+# ---------------------------------------------------------------------------
+scheduler:
+  tick_seconds: 30
+  jobs: []
+  #  - name: daily-prices
+  #    kind: ingest-prices
+  #    interval: 1d
+  #    params:
+  #      symbols: [SPY, AAPL, MSFT, NVDA, TSLA]
+  #  - name: wsb-hourly
+  #    kind: ingest-reddit
+  #    interval: 1h
+  #    params:
+  #      subreddits: [wallstreetbets]
+  #      whitelist: [SPY, AAPL, MSFT, NVDA, TSLA]
+  #      limit: 200
+  #  - name: twitter-hourly                    # requires TWITTER_BEARER_TOKEN
+  #    kind: ingest-twitter
+  #    interval: 1h
+  #    params:
+  #      whitelist: [SPY, AAPL, MSFT, NVDA, TSLA]
+  #      limit: 300
+  #  - name: crypto-daily                      # CCXT — no API key needed for public data
+  #    kind: ingest-crypto
+  #    interval: 1d
+  #    params:
+  #      symbols: [BTC-USD, ETH-USD, SOL-USD]
+  #      exchange: binance                     # or coinbase, kraken, ...
+  #      quote: USDT
+  #  - name: sentiment-refresh                 # re-scores posts AND tweets
+  #    kind: score-sentiment
+  #    interval: 2h
+  #    params:
+  #      scorer: vader
+  #  - name: rebuild-features
+  #    kind: build-features
+  #    interval: 1d
+  #    params:
+  #      symbols: [SPY, AAPL, MSFT, NVDA, TSLA]
+  #      with_sentiment: true

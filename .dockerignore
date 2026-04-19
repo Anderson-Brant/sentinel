@@ -1,0 +1,74 @@
+# Keep the build context lean — only copy what the Dockerfile actually needs.
+# This also avoids leaking local secrets / state into image layers.
+
+# VCS + CI
+.git
+.github
+.gitignore
+.gitattributes
+
+# Virtual envs (we build a fresh one in the builder stage)
+.venv
+venv
+env
+ENV
+.Python
+
+# Python bytecode / caches
+__pycache__
+**/__pycache__
+*.py[cod]
+*$py.class
+*.so
+*.egg-info
+.eggs
+build
+dist
+wheels
+.installed.cfg
+*.egg
+
+# Local state that must never ship in an image
+.env
+.env.local
+*.secret
+data
+*.duckdb
+*.duckdb.wal
+*.parquet
+mlruns
+artifacts
+reports
+models
+
+# Dev-only artifacts that shouldn't bloat the image
+tests
+verify_*.py
+.pytest_cache
+.coverage
+htmlcov
+.tox
+.mypy_cache
+.ruff_cache
+
+# Notebook scratch
+.ipynb_checkpoints
+*.ipynb
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+
+# Docker meta (avoid recursive include)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Docs + deploy recipes aren't needed in the runtime image (README/LICENSE
+# are explicitly COPY'd since they're small and useful for `docker inspect`).
+docs
+deploy
+CHANGELOG.md

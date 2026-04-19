@@ -147,3 +147,51 @@ def walk_forward_evaluate(
         len(folds),
     )
     return report
+
+
+def walk_forward_predictions(
+    features: pd.DataFrame, *, model_name: str, cfg: SentinelConfig
+) -> pd.Series:
+    """Produce out-of-sample P(up) probabilities using rolling-origin splits.
+
+    Returns a Series aligned to ``features.index``. Rows inside the initial
+    warm-up (before ``min_train_size``) are NaN — the backtest should interpret
+    those as "no signal, no position".
+
+    This is the series the backtest engine should consume. Feeding it
+    probabilities from a single model fit on the whole history would leak
+    future information into past positions.
+    """
+    if "target_direction" not in features.columns:
+        raise ValueError("features table must include 'target_direction'")
+
+    feats = features.sort_index()
+    feat_cols = feature_columns(feats)
+    X = feats[feat_cols].astype(float).to_numpy()
+    y = feats["target_direction"].astype(int).to_numpy()
+
+    n = len(feats)
+    min_train = cfg.modeling.walk_forward.min_train_size
+    n_splits = cfg.modeling.walk_forward.n_splits
+    if n < min_train + n_splits:
+        raise ValueError(
+            f"Not enough rows for walk-forward ({n} < min_train {min_train} + n_splits {n_splits})."
+        )
+
+    tail = n - min_train
+    fold_size = max(1, tail // n_splits)
+    probs = pd.Series(np.nan, index=feats.index, dtype=float, name="p_up")
+
+    for i in range(n_splits):
+        train_end = min_train + i * fold_size
+        test_start = train_end
+        test_end = min(test_start + fold_size, n)
+        if test_end <= test_start:
+            break
+        pipeline = build_classifier(model_name, random_state=cfg.modeling.random_state)
+        pipeline.fit(X[:train_end], y[:train_end])
+        probs.iloc[test_start:test_end] = pipeline.predict_proba(X[test_start:test_end])[:, 1]
+
+    n_oos = int(probs.notna().sum())
+    log.info("walk-forward predictions: %d OOS rows over %d folds", n_oos, n_splits)
+    return probs

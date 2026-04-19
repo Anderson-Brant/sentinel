@@ -1,0 +1,66 @@
+# Sentinel — Fly.io deployment.
+#
+# Single-machine scheduler daemon on the default DuckDB profile, backed by
+# a persistent volume for /data. To launch:
+#
+#     fly launch --copy-config --dockerfile ../Dockerfile --no-deploy
+#     fly volumes create sentinel_data --region iad --size 3
+#     fly secrets set \
+#         REDDIT_CLIENT_ID=... \
+#         REDDIT_CLIENT_SECRET=... \
+#         REDDIT_USER_AGENT="sentinel/0.1 by <you>" \
+#         TWITTER_BEARER_TOKEN=...
+#     fly deploy
+#
+# Scale to Postgres later by adding a fly.io postgres cluster and setting
+# SENTINEL_STORAGE_BACKEND=postgres + SENTINEL_POSTGRES_DSN as secrets.
+
+app = "sentinel"
+primary_region = "iad"
+kill_signal = "SIGINT"
+kill_timeout = 30
+
+[build]
+  dockerfile = "../Dockerfile"
+
+[env]
+  SENTINEL_STORAGE_BACKEND = "duckdb"
+  SENTINEL_DB_PATH = "/data/sentinel.duckdb"
+  SENTINEL_LOG_LEVEL = "INFO"
+
+# Scheduler daemon — no public HTTP surface in v0.1, so no [[services]] block.
+# The container's default CMD is `schedule run --forever`, which Fly will
+# restart under its process manager if it exits.
+[processes]
+  scheduler = "schedule run --forever"
+
+# Single persistent volume mounted at /data holds the DuckDB file and any
+# CLI-generated reports/model artifacts. Named volumes don't live inside
+# the container image, so this survives deploys.
+[[mounts]]
+  source = "sentinel_data"
+  destination = "/data"
+  processes = ["scheduler"]
+
+# Small VM — the scheduler is I/O-bound (network + DuckDB writes), not
+# compute-heavy. Bump to shared-cpu-2x + 1024MB before enabling finBERT
+# or LightGBM on large symbol lists.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  processes = ["scheduler"]
+
+# Healthcheck mirrors the Dockerfile HEALTHCHECK — `sentinel version`
+# exercises the CLI import graph. If any optional dep fails at startup
+# this will trip and Fly will recycle the VM.
+[[restart]]
+  policy = "on-failure"
+  max_retries = 5
+
+[checks]
+  [checks.cli]
+    type = "exec"
+    command = "sentinel version"
+    interval = "60s"
+    timeout = "10s"
+    grace_period = "30s"
