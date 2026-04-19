@@ -58,6 +58,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 # Production extras: social ingestion, gradient boosting, MLflow tracking,
 # Postgres driver, CCXT crypto, SHAP importance. Skip the `[transformers]`
 # extra (torch+finBERT are ~2GB) and the `[dev]` extra (tests don't ship).
+# hadolint ignore=DL3013
 RUN pip install --upgrade pip \
     && pip install ".[social,ml-extra,tracking,postgres,crypto,explain]"
 
