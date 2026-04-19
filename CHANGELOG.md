@@ -105,5 +105,5 @@ durable run log, and a containerized deployment story.
 - Sample CLI output for every major command in `docs/sample-outputs.md`.
 - Experimental design + intended study protocol in `docs/methodology.md`.
 
+[0.1.1]: https://github.com/Anderson-Brant/sentinel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Anderson-Brant/sentinel/releases/tag/v0.1.0
-[0.1.1]: https://github.com/Anderson-Brant/sentinel/releases/tag/v0.1.1
