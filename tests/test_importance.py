@@ -30,7 +30,6 @@ from sentinel.evaluation.importance import (
     shap_importance,
 )
 
-
 # ---------------------------------------------------------------------------
 # Permutation importance — synthetic signal
 # ---------------------------------------------------------------------------
@@ -213,7 +212,7 @@ def test_shap_importance_passes_final_estimator_to_explainer(monkeypatch, shap_2
     pipeline = types.SimpleNamespace(steps=[("scaler", scaler), ("clf", clf)])
 
     X = np.random.default_rng(0).standard_normal((4, 3))
-    result = shap_importance(pipeline, X, ["a", "b", "c"], max_samples=500)
+    shap_importance(pipeline, X, ["a", "b", "c"], max_samples=500)
 
     # Scaler's transform was applied before shap saw the data.
     assert scaler.calls == 1

@@ -6,9 +6,8 @@ vaderSentiment, or network access.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -28,7 +27,6 @@ from sentinel.ingestion.twitter import (
     ingest_tweets,
 )
 from sentinel.storage.duckdb_store import DuckDBStore
-
 
 # ---------------------------------------------------------------------------
 # Fixtures / fakes
@@ -56,7 +54,7 @@ def _mk_tweet(
     retweets: int = 1,
     replies: int = 0,
 ) -> Tweet:
-    ts = datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc) + timedelta(days=day)
+    ts = datetime(2026, 4, 1, 12, 0, tzinfo=UTC) + timedelta(days=day)
     return Tweet(
         tweet_id=tid,
         created_ts=ts,
@@ -73,7 +71,7 @@ def _mk_tweet(
 
 
 def _mk_post(pid: str, title: str, *, day: int, score=10, comments=5) -> RedditPost:
-    ts = datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc) + timedelta(days=day)
+    ts = datetime(2026, 4, 1, 12, 0, tzinfo=UTC) + timedelta(days=day)
     return RedditPost(
         post_id=pid,
         created_ts=ts,

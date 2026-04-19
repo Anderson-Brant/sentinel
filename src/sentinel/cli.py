@@ -14,8 +14,6 @@ Example usage:
 
 from __future__ import annotations
 
-from typing import Optional
-
 import typer
 from rich.console import Console
 
@@ -63,9 +61,9 @@ def version() -> None:
 @ingest_app.command("prices")
 def ingest_prices(
     symbol: str = typer.Argument(..., help="Ticker symbol, e.g. SPY, AAPL, BTC-USD."),
-    start: Optional[str] = typer.Option(None, help="ISO start date. Defaults to config."),
-    end: Optional[str] = typer.Option(None, help="ISO end date. Defaults to today."),
-    interval: Optional[str] = typer.Option(None, help="yfinance interval (e.g. 1d, 1h)."),
+    start: str | None = typer.Option(None, help="ISO start date. Defaults to config."),
+    end: str | None = typer.Option(None, help="ISO end date. Defaults to today."),
+    interval: str | None = typer.Option(None, help="yfinance interval (e.g. 1d, 1h)."),
 ) -> None:
     """Download OHLCV history and persist it to the configured store."""
     from sentinel.ingestion.market import ingest_prices as _ingest
@@ -83,17 +81,17 @@ def ingest_prices(
 
 @ingest_app.command("reddit")
 def ingest_reddit(
-    whitelist: Optional[str] = typer.Option(
+    whitelist: str | None = typer.Option(
         None,
         "--whitelist",
         help="Comma-separated tickers to match without $ prefix (e.g. SPY,AAPL,TSLA).",
     ),
-    subreddits: Optional[str] = typer.Option(
+    subreddits: str | None = typer.Option(
         None,
         "--subreddits",
         help="Comma-separated subreddits. Overrides config.",
     ),
-    limit: Optional[int] = typer.Option(
+    limit: int | None = typer.Option(
         None, "--limit", help="Max posts per subreddit. Overrides config."
     ),
     score_sentiment: bool = typer.Option(
@@ -139,7 +137,7 @@ def score_reddit_sentiment(
         help="Sentiment backend: 'vader' (rule-based, no deps) or 'finbert' "
         "(financial-news transformer; requires transformers + torch).",
     ),
-    model_name: Optional[str] = typer.Option(
+    model_name: str | None = typer.Option(
         None,
         "--model-name",
         help="Override the HF model checkpoint (finbert only). "
@@ -202,19 +200,19 @@ def score_reddit_sentiment(
 
 @ingest_app.command("twitter")
 def ingest_twitter(
-    whitelist: Optional[str] = typer.Option(
+    whitelist: str | None = typer.Option(
         None,
         "--whitelist",
         help="Comma-separated tickers. Used to build the cashtag query "
         "(e.g. SPY,AAPL,TSLA → '($SPY OR $AAPL OR $TSLA) -is:retweet lang:en') "
         "and to filter mention extraction.",
     ),
-    query: Optional[str] = typer.Option(
+    query: str | None = typer.Option(
         None,
         "--query",
         help="Raw v2 recent-search query. Overrides the one built from --whitelist.",
     ),
-    limit: Optional[int] = typer.Option(
+    limit: int | None = typer.Option(
         None, "--limit", help="Max tweets per run. Overrides config."
     ),
     score_sentiment_flag: bool = typer.Option(
@@ -272,23 +270,23 @@ def ingest_crypto(
     symbol: str = typer.Argument(
         ..., help="Crypto symbol: yfinance-style BTC-USD or CCXT-style BTC/USDT."
     ),
-    start: Optional[str] = typer.Option(
+    start: str | None = typer.Option(
         None, "--start", help="ISO start date. Defaults to config."
     ),
-    end: Optional[str] = typer.Option(
+    end: str | None = typer.Option(
         None, "--end", help="ISO end date. Defaults to most recent."
     ),
-    interval: Optional[str] = typer.Option(
+    interval: str | None = typer.Option(
         None,
         "--interval",
         help="CCXT timeframe (1d, 1h, 5m, ...). Defaults to config (1d).",
     ),
-    exchange: Optional[str] = typer.Option(
+    exchange: str | None = typer.Option(
         None,
         "--exchange",
         help="CCXT exchange id (binance, coinbase, kraken, ...). Defaults to config.",
     ),
-    quote: Optional[str] = typer.Option(
+    quote: str | None = typer.Option(
         None,
         "--quote",
         help="Exchange-side quote currency (USDT, USDC, ...). Defaults to config.",
@@ -413,7 +411,7 @@ def train(
     experiment: str = typer.Option(
         "sentinel", "--experiment", help="MLflow experiment name (only used with --track)."
     ),
-    mlflow_uri: Optional[str] = typer.Option(
+    mlflow_uri: str | None = typer.Option(
         None, "--mlflow-uri", help="MLflow tracking URI (default: mlflow's built-in, ./mlruns)."
     ),
 ) -> None:
@@ -500,7 +498,7 @@ def backtest(
     periods_per_year: int = typer.Option(
         252, help="Annualization factor. 252 for daily equities, 365 for crypto daily."
     ),
-    vol_target: Optional[float] = typer.Option(
+    vol_target: float | None = typer.Option(
         None,
         "--vol-target",
         help="Annualized portfolio vol target (e.g. 0.10 for 10%). "
@@ -521,7 +519,7 @@ def backtest(
     experiment: str = typer.Option(
         "sentinel", "--experiment", help="MLflow experiment name (only used with --track)."
     ),
-    mlflow_uri: Optional[str] = typer.Option(
+    mlflow_uri: str | None = typer.Option(
         None, "--mlflow-uri", help="MLflow tracking URI."
     ),
 ) -> None:
@@ -616,7 +614,7 @@ def regimes(
     trend_fast: int = typer.Option(50, help="Fast SMA length for trend regime."),
     trend_slow: int = typer.Option(200, help="Slow SMA length for trend regime."),
     periods_per_year: int = typer.Option(252, help="Annualization factor."),
-    vol_target: Optional[float] = typer.Option(
+    vol_target: float | None = typer.Option(
         None,
         "--vol-target",
         help="Annualized vol target for position sizing in the underlying backtest.",
@@ -909,7 +907,7 @@ def schedule_run(
         "--once/--forever",
         help="Run one pass over due jobs and exit (default), or loop forever.",
     ),
-    tick_seconds: Optional[int] = typer.Option(
+    tick_seconds: int | None = typer.Option(
         None,
         "--tick-seconds",
         help="Seconds between ticks in --forever mode. Defaults to scheduler.tick_seconds.",
@@ -1011,7 +1009,7 @@ def schedule_status() -> None:
 
 @schedule_app.command("history")
 def schedule_history(
-    job: Optional[str] = typer.Option(
+    job: str | None = typer.Option(
         None, "--job", help="Filter to a single job name."
     ),
     limit: int = typer.Option(

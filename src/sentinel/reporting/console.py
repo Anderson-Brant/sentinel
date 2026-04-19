@@ -326,7 +326,7 @@ def render_regime_analysis(reports: list[RegimeReport]) -> None:
                 )
             else:
                 note = (
-                    f"[red]No regime shows positive edge vs buy-and-hold[/red]; "
+                    "[red]No regime shows positive edge vs buy-and-hold[/red]; "
                 )
             if edges[worst_label] < 0:
                 note += (

@@ -32,8 +32,9 @@ metrics (Sharpe, total return, max drawdown), not just classification scores.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, Literal
+from typing import Literal
 
 import pandas as pd
 

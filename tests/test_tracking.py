@@ -13,7 +13,6 @@ installed on the runner. What we're pinning down:
 
 from __future__ import annotations
 
-import math
 import sys
 import types
 
@@ -21,7 +20,6 @@ import pytest
 
 from sentinel.tracking import NullTracker, get_tracker
 from sentinel.tracking import mlflow_tracker as tracking_mod
-
 
 # ---------------------------------------------------------------------------
 # Fake mlflow helper

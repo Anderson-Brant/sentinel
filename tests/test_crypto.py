@@ -9,7 +9,7 @@ assert shape / invariants of the returned DataFrame.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 import pandas as pd
@@ -21,7 +21,6 @@ from sentinel.ingestion.crypto import (
     parse_symbol,
 )
 from sentinel.scheduling.registry import registered_kinds
-
 
 # ---------------------------------------------------------------------------
 # Fake exchange
@@ -58,7 +57,7 @@ class _FakeExchange:
 
 
 def _day_ms(iso: str) -> int:
-    dt = datetime.fromisoformat(iso).replace(tzinfo=timezone.utc)
+    dt = datetime.fromisoformat(iso).replace(tzinfo=UTC)
     return int(dt.timestamp() * 1000)
 
 

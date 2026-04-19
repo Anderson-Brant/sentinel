@@ -33,8 +33,8 @@ from __future__ import annotations
 
 import time
 import traceback
+from collections.abc import Callable, Iterable
 from datetime import datetime
-from typing import Callable, Iterable
 
 from sentinel.scheduling.registry import get_job
 from sentinel.scheduling.spec import (

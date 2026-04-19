@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ class _FakeFetcher:
 def _post(pid, title, body="", subreddit="wallstreetbets", score=10, comments=5):
     return RedditPost(
         post_id=pid,
-        created_ts=datetime(2026, 4, 15, 12, 0, tzinfo=timezone.utc),
+        created_ts=datetime(2026, 4, 15, 12, 0, tzinfo=UTC),
         subreddit=subreddit,
         author="someone",
         title=title,

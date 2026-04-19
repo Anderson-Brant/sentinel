@@ -34,8 +34,9 @@ Design choices
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -44,7 +45,6 @@ from sentinel.storage.base import (
     JOB_RUN_COLUMNS,
     REDDIT_POST_COLUMNS,
     TWEET_COLUMNS,
-    Store,
 )
 from sentinel.utils.logging import get_logger
 
@@ -703,9 +703,7 @@ def _is_null(v: Any) -> bool:
     # the isinstance check alone misses it; add an explicit identity test.
     if v is pd.NA or v is pd.NaT:
         return True
-    if isinstance(v, pd.Timestamp) and pd.isna(v):
-        return True
-    return False
+    return bool(isinstance(v, pd.Timestamp) and pd.isna(v))
 
 
 __all__ = ["PostgresStore"]

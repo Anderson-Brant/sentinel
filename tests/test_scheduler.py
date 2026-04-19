@@ -23,7 +23,6 @@ from sentinel.scheduling import (
 from sentinel.scheduling.registry import _REGISTRY, get_job, register, registered_kinds
 from sentinel.storage.duckdb_store import DuckDBStore
 
-
 # ---------------------------------------------------------------------------
 # Interval parsing
 # ---------------------------------------------------------------------------

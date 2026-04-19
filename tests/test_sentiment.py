@@ -7,7 +7,7 @@ re-test VADER itself.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -63,7 +63,7 @@ def test_score_posts_empty_returns_empty_with_right_columns():
 
 
 def _mk_post(pid: str, title: str, body: str, *, day: int, score=10, comments=5):
-    ts = datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc) + timedelta(days=day)
+    ts = datetime(2026, 4, 1, 12, 0, tzinfo=UTC) + timedelta(days=day)
     return RedditPost(
         post_id=pid,
         created_ts=ts,

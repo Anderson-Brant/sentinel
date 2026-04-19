@@ -18,9 +18,8 @@ import types
 
 import pytest
 
-from sentinel.models.baseline import SUPPORTED, build_classifier
 from sentinel.models import gradient_boosted as gb
-
+from sentinel.models.baseline import SUPPORTED, build_classifier
 
 # ---------------------------------------------------------------------------
 # Stub helpers
@@ -153,7 +152,7 @@ def test_supported_set_includes_gbms():
 
 
 def test_gbm_models_registered_constant():
-    assert gb.GBM_MODELS == frozenset({"xgboost", "lightgbm"})
+    assert frozenset({"xgboost", "lightgbm"}) == gb.GBM_MODELS
 
 
 def test_build_classifier_xgboost_returns_unscaled_pipeline(fake_xgboost):

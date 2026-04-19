@@ -39,7 +39,8 @@ the constructor. Sentinel still imports and runs without them.
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 
@@ -195,10 +196,7 @@ class FinBertScorer:
         idx = self._label_to_idx
         pos = float(probs[idx["positive"]])
         neg = float(probs[idx["negative"]])
-        if "neutral" in idx:
-            neu = float(probs[idx["neutral"]])
-        else:
-            neu = float(1.0 - pos - neg)
+        neu = float(probs[idx["neutral"]]) if "neutral" in idx else float(1.0 - pos - neg)
         # Tiny negative values can show up from floating-point rounding.
         neu = max(0.0, neu)
         return {

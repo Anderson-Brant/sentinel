@@ -16,14 +16,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Fake psycopg connection — records SQL + returns canned fetchall responses
 # ---------------------------------------------------------------------------
 
 
 class FakeCursor:
-    def __init__(self, conn: "FakeConnection") -> None:
+    def __init__(self, conn: FakeConnection) -> None:
         self.conn = conn
         self._last_rows: list[tuple[Any, ...]] = []
 
@@ -154,10 +153,10 @@ def test_init_schema_respects_enable_timescale_false():
 def test_missing_psycopg_raises_actionable_import_error(monkeypatch):
     """With no connect_factory, we try to import psycopg. If it's missing we
     must surface an install hint rather than a bare ModuleNotFoundError."""
-    from sentinel.storage import postgres_store as mod
-
     # Patch __import__ to simulate missing psycopg.
     import builtins
+
+    from sentinel.storage import postgres_store as mod
 
     real_import = builtins.__import__
 

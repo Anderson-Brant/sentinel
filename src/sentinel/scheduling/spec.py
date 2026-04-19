@@ -88,7 +88,7 @@ class JobSpec:
         interval: int | float | str,
         params: dict[str, Any] | None = None,
         enabled: bool = True,
-    ) -> "JobSpec":
+    ) -> JobSpec:
         return cls(
             name=name,
             kind=kind,

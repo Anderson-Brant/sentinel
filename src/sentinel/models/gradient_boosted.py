@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 _XGBOOST_INSTALL_HINT = (
     "xgboost is not installed. Install it with `pip install xgboost` "
     "(or `pip install -e \".[gbm]\"` once the optional extra is wired up)."

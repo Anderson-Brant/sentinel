@@ -19,9 +19,10 @@ Design notes
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Callable, Iterable, Protocol
+from datetime import UTC, datetime
+from typing import Protocol
 
 import pandas as pd
 
@@ -55,7 +56,7 @@ class RedditPost:
         # Ensure the timestamp is timezone-naive UTC — DuckDB TIMESTAMP is
         # naive by default, and mixing tz-aware and naive values errors out.
         if isinstance(d["created_ts"], datetime) and d["created_ts"].tzinfo is not None:
-            d["created_ts"] = d["created_ts"].astimezone(timezone.utc).replace(tzinfo=None)
+            d["created_ts"] = d["created_ts"].astimezone(UTC).replace(tzinfo=None)
         return d
 
 
@@ -150,7 +151,7 @@ def _submission_to_post(submission) -> RedditPost:
     """Convert a praw Submission into our dataclass. Tolerant to missing fields."""
     created = getattr(submission, "created_utc", None)
     created_ts = (
-        datetime.fromtimestamp(created, tz=timezone.utc) if created else datetime.utcnow()
+        datetime.fromtimestamp(created, tz=UTC) if created else datetime.utcnow()
     )
     author = getattr(submission, "author", None)
     author_name = str(author) if author is not None else None

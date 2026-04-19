@@ -19,7 +19,7 @@ with fixture data — no CCXT install required in tests.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any, Protocol
 
 import pandas as pd
@@ -123,14 +123,14 @@ def _load_ccxt_exchange(exchange_id: str) -> ExchangeClient:
 def _to_epoch_ms(value: str | date | datetime) -> int:
     """Convert a str/date/datetime to Unix epoch milliseconds, UTC."""
     if isinstance(value, datetime):
-        dt = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        dt = value if value.tzinfo else value.replace(tzinfo=UTC)
         return int(dt.timestamp() * 1000)
     if isinstance(value, date):
-        dt = datetime(value.year, value.month, value.day, tzinfo=timezone.utc)
+        dt = datetime(value.year, value.month, value.day, tzinfo=UTC)
         return int(dt.timestamp() * 1000)
     dt = datetime.fromisoformat(str(value))
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return int(dt.timestamp() * 1000)
 
 

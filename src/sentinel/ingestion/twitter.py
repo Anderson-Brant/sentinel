@@ -24,9 +24,10 @@ Design notes
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Iterable, Protocol
+from datetime import UTC, datetime
+from typing import Protocol
 
 import pandas as pd
 
@@ -67,7 +68,7 @@ class Tweet:
         d = asdict(self)
         # Storage uses naive UTC timestamps — tweepy returns tz-aware datetimes.
         if isinstance(d["created_ts"], datetime) and d["created_ts"].tzinfo is not None:
-            d["created_ts"] = d["created_ts"].astimezone(timezone.utc).replace(tzinfo=None)
+            d["created_ts"] = d["created_ts"].astimezone(UTC).replace(tzinfo=None)
         return d
 
 
@@ -178,7 +179,7 @@ def _tweet_to_record(t, users: dict) -> Tweet:
     created_ts = (
         created
         if isinstance(created, datetime)
-        else datetime.now(tz=timezone.utc)
+        else datetime.now(tz=UTC)
     )
     metrics = getattr(t, "public_metrics", {}) or {}
     author_id = getattr(t, "author_id", None)

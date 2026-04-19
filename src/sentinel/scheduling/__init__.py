@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from sentinel.config import SentinelConfig
 
 
-def load_jobs_from_config(cfg: "SentinelConfig") -> list[JobSpec]:
+def load_jobs_from_config(cfg: SentinelConfig) -> list[JobSpec]:
     """Convert the YAML ``scheduler.jobs`` section into JobSpec instances."""
     return [
         JobSpec.from_config(

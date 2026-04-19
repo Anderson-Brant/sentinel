@@ -23,6 +23,7 @@ Writes are idempotent:
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 
 import duckdb
@@ -194,10 +195,9 @@ class DuckDBStore:
             if not exists:
                 con.execute("CREATE TABLE features AS SELECT * FROM incoming WHERE 1=0")
                 # Best-effort primary key (skip if duckdb version complains).
-                try:
+                with contextlib.suppress(Exception):
                     con.execute("ALTER TABLE features ADD PRIMARY KEY (symbol, date)")
-                except Exception:  # noqa: BLE001
-                    pass
+
             con.execute("DELETE FROM features WHERE symbol = ?", [symbol])
             con.execute("INSERT INTO features SELECT * FROM incoming")
             con.unregister("incoming")

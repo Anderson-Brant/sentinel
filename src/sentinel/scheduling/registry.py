@@ -20,7 +20,8 @@ for callers that only need to register their own kinds.
 
 from __future__ import annotations
 
-from typing import Any, Callable, TypedDict
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 from sentinel.storage.base import Store
 from sentinel.utils.logging import get_logger

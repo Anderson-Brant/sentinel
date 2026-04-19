@@ -28,9 +28,9 @@ from __future__ import annotations
 
 import contextlib
 import math
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, Protocol, runtime_checkable
-
+from typing import Any, Protocol, runtime_checkable
 
 _MLFLOW_INSTALL_HINT = (
     "mlflow is not installed. Install it with `pip install mlflow` "
@@ -49,7 +49,7 @@ class Tracker(Protocol):
 
     def start_run(
         self, run_name: str | None = None
-    ) -> "contextlib.AbstractContextManager[Any]": ...
+    ) -> contextlib.AbstractContextManager[Any]: ...
     def log_params(self, params: dict[str, Any]) -> None: ...
     def log_metrics(self, metrics: dict[str, Any], step: int | None = None) -> None: ...
     def log_artifact(self, path: str | Path) -> None: ...

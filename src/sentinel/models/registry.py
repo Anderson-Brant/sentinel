@@ -8,6 +8,7 @@ Intentionally minimal:
 
 from __future__ import annotations
 
+import contextlib
 import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -154,10 +155,8 @@ def predict_latest(result: TrainResult, features: pd.DataFrame) -> LatestPredict
     row = features.iloc[[-1]]
     X = row[result.feature_names].astype(float).to_numpy()
     proba_up = float("nan")
-    try:
+    with contextlib.suppress(Exception):
         proba_up = float(result.pipeline.predict_proba(X)[0, 1])
-    except Exception:  # noqa: BLE001
-        pass
     direction = int(result.pipeline.predict(X)[0])
 
     if np.isnan(proba_up):

@@ -29,7 +29,6 @@ from sentinel.models.gradient_boosted import (
     make_xgboost_classifier,
 )
 
-
 # Models whose inputs benefit from zero-mean / unit-variance scaling.
 _SCALED_MODELS = {"logistic"}
 
