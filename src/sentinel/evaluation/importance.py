@@ -1,25 +1,25 @@
-"""Feature importance reporting — permutation + SHAP.
+"""Feature importance reporting - permutation + SHAP.
 
 Why this exists
 ---------------
 The rest of Sentinel answers *does the model work*. This module answers
 *why does it work* (and equally importantly: *what is it actually leaning
 on*). Without this, a walk-forward Sharpe of 1.2 is a claim with no
-provenance — you can't tell whether the edge is coming from a robust
+provenance - you can't tell whether the edge is coming from a robust
 momentum feature or an over-fit sentiment artifact, and you can't tell
 whether a silent data-pipeline change has quietly changed what the model
 cares about.
 
 Two methods are supported:
 
-* ``permutation_importance`` — model-agnostic, zero extra deps. For each
+* ``permutation_importance`` - model-agnostic, zero extra deps. For each
   feature, shuffle its column ``n_repeats`` times and measure how much
   the score drops vs. the un-shuffled baseline. Handled here without
   sklearn's ``permutation_importance`` so the pipeline works even when
   sklearn's API drifts (it has twice across 0.24/1.0) and so the tests
   can run in the zero-sklearn sandbox.
 
-* ``shap_importance`` — faithful local explanations via ``shap``. We use
+* ``shap_importance`` - faithful local explanations via ``shap``. We use
   the unified ``shap.Explainer`` entry point so the same call works for
   tree models (TreeExplainer under the hood), linear models (Linear),
   and falls back to KernelExplainer otherwise. shap is lazy-imported so
@@ -55,7 +55,7 @@ class ImportanceResult:
     """Sorted (descending) importance report.
 
     ``df`` has three columns: ``feature``, ``mean_importance``,
-    ``std_importance``. Units depend on the method — for permutation
+    ``std_importance``. Units depend on the method - for permutation
     importance it's a score *drop*; for SHAP it's mean ``|shap|``.
     """
 
@@ -126,7 +126,7 @@ def permutation_importance(
         drops = np.empty(n_repeats, dtype=float)
         for r in range(n_repeats):
             X_perm = X_arr.copy()
-            # Shuffle along axis 0 for column j only — preserves the joint
+            # Shuffle along axis 0 for column j only - preserves the joint
             # distribution of every *other* feature vs. the target.
             rng.shuffle(X_perm[:, j])
             drops[r] = baseline - _score(pipeline, X_perm, y_arr, scoring)
@@ -149,7 +149,7 @@ def permutation_importance(
         "permutation importance (%s): baseline=%.4f, top=%s",
         scoring,
         baseline,
-        df.iloc[0]["feature"] if not df.empty else "—",
+        df.iloc[0]["feature"] if not df.empty else "-",
     )
     return ImportanceResult(method="permutation", df=df, scoring=scoring)
 
@@ -245,6 +245,6 @@ def shap_importance(
     log.info(
         "shap importance: %d samples, top=%s",
         X_sample.shape[0],
-        df.iloc[0]["feature"] if not df.empty else "—",
+        df.iloc[0]["feature"] if not df.empty else "-",
     )
     return ImportanceResult(method="shap", df=df)

@@ -78,7 +78,7 @@ def _install_fake_torch(monkeypatch, *, cuda_available: bool = False) -> dict[st
 
 
 class _FakeEncoding(dict):
-    """Mock of a transformers BatchEncoding — dict-like, with ``.to``."""
+    """Mock of a transformers BatchEncoding - dict-like, with ``.to``."""
 
     def to(self, device):
         self["_device"] = device
@@ -151,7 +151,7 @@ def _install_fake_transformers(
 
 
 # ---------------------------------------------------------------------------
-# Helpers — build logits that softmax to a controlled distribution
+# Helpers - build logits that softmax to a controlled distribution
 # ---------------------------------------------------------------------------
 
 
@@ -165,7 +165,7 @@ def _logits_for(*triples: tuple[float, float, float]) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# Tests — missing libs
+# Tests - missing libs
 # ---------------------------------------------------------------------------
 
 
@@ -179,7 +179,7 @@ def test_finbert_missing_torch_raises(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Tests — single-text scoring
+# Tests - single-text scoring
 # ---------------------------------------------------------------------------
 
 
@@ -225,7 +225,7 @@ def test_polarity_scores_negative_compound(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Tests — label map robustness
+# Tests - label map robustness
 # ---------------------------------------------------------------------------
 
 
@@ -286,7 +286,7 @@ def test_label_map_falls_back_when_id2label_missing(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Tests — batching
+# Tests - batching
 # ---------------------------------------------------------------------------
 
 
@@ -344,7 +344,7 @@ def test_polarity_scores_batch_coerces_non_strings(monkeypatch):
 
     out = FinBertScorer(batch_size=8).polarity_scores_batch(["ok", None, float("nan")])
     assert len(out) == 3
-    # All three rows processed — no crash on None/NaN.
+    # All three rows processed - no crash on None/NaN.
     assert sum(seen) == 3
 
 
@@ -382,7 +382,7 @@ def test_constructor_rejects_zero_max_length(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# score_posts integration — finBERT behaves like a VADER scorer
+# score_posts integration - finBERT behaves like a VADER scorer
 # ---------------------------------------------------------------------------
 
 

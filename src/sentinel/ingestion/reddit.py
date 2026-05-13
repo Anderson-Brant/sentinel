@@ -11,7 +11,7 @@ Design notes
   ``social`` extra installed.
 - The fetch step is factored into a ``PostFetcher`` protocol so tests can
   inject a fake that returns canned records without touching the network.
-- Sentiment scoring is intentionally *not* done here — raw posts land first,
+- Sentiment scoring is intentionally *not* done here - raw posts land first,
   and :mod:`sentinel.features.sentiment` fills in the scores in a second pass.
   That separation keeps the network-bound step idempotent and lets sentiment
   re-runs happen without refetching Reddit.
@@ -35,7 +35,7 @@ log = get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Dataclass — matches the reddit_posts table (sentiment columns filled later)
+# Dataclass - matches the reddit_posts table (sentiment columns filled later)
 # ---------------------------------------------------------------------------
 
 
@@ -53,7 +53,7 @@ class RedditPost:
 
     def to_dict(self) -> dict:
         d = asdict(self)
-        # Ensure the timestamp is timezone-naive UTC — DuckDB TIMESTAMP is
+        # Ensure the timestamp is timezone-naive UTC - DuckDB TIMESTAMP is
         # naive by default, and mixing tz-aware and naive values errors out.
         if isinstance(d["created_ts"], datetime) and d["created_ts"].tzinfo is not None:
             d["created_ts"] = d["created_ts"].astimezone(UTC).replace(tzinfo=None)
@@ -81,7 +81,7 @@ class RedditClient:
     """Thin wrapper around praw. Lazy-imports praw on first use.
 
     Credentials come from :class:`Secrets` (env vars / .env). All three must
-    be set — praw will refuse to authenticate otherwise.
+    be set - praw will refuse to authenticate otherwise.
     """
 
     def __init__(self, secrets: Secrets | None = None) -> None:
@@ -122,7 +122,7 @@ class RedditClient:
             user_agent=self._secrets.reddit_user_agent,
             check_for_async=False,
         )
-        # Read-only — we never post anything back.
+        # Read-only - we never post anything back.
         self._reddit.read_only = True
         return self._reddit
 

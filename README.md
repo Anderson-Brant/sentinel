@@ -1,14 +1,12 @@
 # Sentinel
 
-**Market intelligence & stock prediction platform.** Equities, crypto, and social sentiment in one honest research pipeline: ingest → features → walk-forward train → evaluate → backtest, end-to-end from the CLI.
+**Market intelligence and stock prediction platform.** Equities, crypto, and social sentiment in one honest research pipeline: ingest, features, walk-forward train, evaluate, backtest, end-to-end from the CLI.
 
 [![CI](https://github.com/Anderson-Brant/sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Anderson-Brant/sentinel/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-> **v0.1.0 — shipped.** Full MVP loop runs on equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks. Pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in). Multi-stage Docker image + Fly.io deploy recipe.
-
----
+> **v0.1.0 shipped.** Full MVP loop runs on equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks. Pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in). Multi-stage Docker image + Fly.io deploy recipe.
 
 ## What it does
 
@@ -16,7 +14,7 @@ Most "stock predictor" projects use one data source, a single train/test split, 
 
 - **Multi-source by design.** Equities, crypto, Reddit, and X/Twitter feed the same feature table, and every sentiment block is cleanly separable for ablation.
 - **No leakage.** Walk-forward / rolling-origin CV is the only accepted evaluation protocol. Features only use information available at time *t*.
-- **Baselines first.** Every model is compared against `predict_majority`, `predict_prev_sign`, and buy-and-hold. If the fancy model can't beat the naive rule, that's a finding — not a failure to hide.
+- **Baselines first.** Every model is compared against `predict_majority`, `predict_prev_sign`, and buy-and-hold. If the fancy model can't beat the naive rule, that's a finding, not a failure to hide.
 - **Honest evaluation.** Ablations (sentiment on/off), regime slicing (vol terciles × bull/bear), realistic transaction costs, vol-targeted sizing.
 
 The full evaluation protocol and the rules for what counts as a finding vs. noise are written up in [`docs/methodology.md`](docs/methodology.md).
@@ -37,7 +35,7 @@ $ sentinel demo SPY
 ```
 $ sentinel ablate SPY
 
-                  Ablation — SPY, walk-forward folds=10
+                  Ablation: SPY, walk-forward folds=10
 ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
 ┃ Variant           ┃ Acc.   ┃ LogL   ┃ Sharpe ┃ Max DD   ┃ vs. B&H ┃
 ┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
@@ -48,8 +46,6 @@ $ sentinel ablate SPY
 ```
 
 More captured output from every major command lives in [`docs/sample-outputs.md`](docs/sample-outputs.md).
-
----
 
 ## Quickstart
 
@@ -69,8 +65,6 @@ sentinel explain  SPY --model xgboost --method shap
 
 Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra` (XGBoost/LightGBM), `tracking` (MLflow), `explain` (SHAP), `transformers` (finBERT), `postgres`, `crypto`.
 
----
-
 ## Capabilities
 
 | Layer | What you get |
@@ -80,15 +74,13 @@ Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra
 | **Features** | Technical (returns, SMA/EMA, realized vol, momentum, volume z-scores); sentiment (VADER rollups + optional finBERT); prefixed blocks so ablation partitions cleanly |
 | **Models** | Logistic + Random Forest baselines; XGBoost + LightGBM via lazy-imported `[ml-extra]` |
 | **Evaluation** | Walk-forward / rolling-origin CV; directional + regression targets; ablation harness; regime-sliced performance (vol terciles × bull/bear SMA crossover) |
-| **Backtest** | Signal → equity curve → Sharpe / Sortino / max DD / hit rate; transaction costs; vol-targeted sizing with leverage cap, 1-bar shifted |
+| **Backtest** | Signal to equity curve to Sharpe / Sortino / max DD / hit rate; transaction costs; vol-targeted sizing with leverage cap, 1-bar shifted |
 | **Tracking** | MLflow behind `--track` on train + backtest; params, metrics, artifacts logged per run |
 | **Explainability** | Permutation importance (dep-free) + SHAP via `[explain]`; Rich top-N table via `sentinel explain` |
 | **Scheduling** | Declarative `scheduler.jobs` YAML; `ingest-{prices,reddit,twitter,crypto}` / `score-sentiment` / `build-features` kinds; durable `job_runs` log; failures retry, never abort the loop |
 | **Deployment** | Multi-stage Docker image (slim Python, non-root, tini, healthcheck); docker-compose with DuckDB default + opt-in `postgres` / `mlflow` profiles; Fly.io recipe |
 
 Full v0.1 release notes are in [`CHANGELOG.md`](CHANGELOG.md).
-
----
 
 ## Running scheduled jobs
 
@@ -103,7 +95,7 @@ scheduler:
       interval: 1d
       params:
         symbols: [SPY, AAPL, MSFT, NVDA, TSLA]
-    - name: crypto-daily                       # CCXT — no API key needed for public data
+    - name: crypto-daily                       # CCXT, no API key needed for public data
       kind: ingest-crypto
       interval: 1d
       params:
@@ -132,7 +124,7 @@ sentinel schedule status                       # per-job: last run, next due
 sentinel schedule history --limit 20           # recent runs across all jobs
 ```
 
-Every run — success, error, or skipped — is appended to a durable `job_runs` table. A failing job stays "due" and retries on the next tick; one bad job never aborts the loop.
+Every run (success, error, or skipped) is appended to a durable `job_runs` table. A failing job stays "due" and retries on the next tick; one bad job never aborts the loop.
 
 ## Switching to Postgres / TimescaleDB
 
@@ -147,7 +139,7 @@ export SENTINEL_POSTGRES_DSN='postgresql://user:pass@host:5432/sentinel'
 sentinel ingest prices SPY                     # identical CLI, Postgres backend
 ```
 
-Schema is created on first connect. `prices`, `reddit_posts`, and `tweets` become Timescale hypertables when the extension is available, and soft-fall-back to plain Postgres tables otherwise. Feature columns are added dynamically (`ALTER TABLE ADD COLUMN`) as new feature blocks come online — no migrations.
+Schema is created on first connect. `prices`, `reddit_posts`, and `tweets` become Timescale hypertables when the extension is available, and soft-fall-back to plain Postgres tables otherwise. Feature columns are added dynamically (`ALTER TABLE ADD COLUMN`) as new feature blocks come online, no migrations.
 
 ## Twitter / X credentials
 
@@ -155,7 +147,7 @@ Set `TWITTER_BEARER_TOKEN` in your environment or `.env` before running `sentine
 
 ## Crypto ingestion (CCXT)
 
-Crypto OHLCV flows through the same `prices` table as equities — symbols are stored in yfinance-style (`BTC-USD`, `ETH-USD`) regardless of which stablecoin the exchange actually quotes in, so `sentinel features build BTC-USD` and the rest of the pipeline work without special-casing crypto.
+Crypto OHLCV flows through the same `prices` table as equities. Symbols are stored in yfinance-style (`BTC-USD`, `ETH-USD`) regardless of which stablecoin the exchange actually quotes in, so `sentinel features build BTC-USD` and the rest of the pipeline work without special-casing crypto.
 
 ```bash
 pip install -e '.[crypto]'                     # installs ccxt
@@ -165,7 +157,7 @@ sentinel ingest crypto ETH-USD --start 2021-01-01 --exchange coinbase
 sentinel ingest crypto SOL-USD --quote USDC    # trade via USDC instead of USDT
 ```
 
-Public OHLCV endpoints on most CCXT exchanges (Binance, Coinbase, Kraken, ...) require no API key. The adapter paginates through `fetch_ohlcv` in batches of 1000 bars, deduplicates overlapping timestamps, and maps exchange-side `BTC/USDT` → storage-side `BTC-USD` automatically. USDC, DAI, BUSD, and TUSD quotes also normalize to `-USD`.
+Public OHLCV endpoints on most CCXT exchanges (Binance, Coinbase, Kraken, ...) require no API key. The adapter paginates through `fetch_ohlcv` in batches of 1000 bars, deduplicates overlapping timestamps, and maps exchange-side `BTC/USDT` to storage-side `BTC-USD` automatically. USDC, DAI, BUSD, and TUSD quotes also normalize to `-USD`.
 
 ## Running in production (Docker)
 
@@ -180,9 +172,7 @@ docker compose run --rm sentinel demo SPY      # one-shot CLI run
 
 The container runs as a non-root user (uid 10001), uses `tini` to reap zombies from the scheduler daemon, and exposes a Docker `HEALTHCHECK` that calls `sentinel version`. State persists across restarts via named volumes. Credentials pass through from your shell or `.env`.
 
-For single-machine cloud deployment, see [`deploy/fly.toml`](deploy/fly.toml) — a Fly.io recipe that runs the scheduler daemon on a persistent volume, with a drop-in path to Postgres when you outgrow DuckDB. [`deploy/README.md`](deploy/README.md) has notes for other platforms.
-
----
+For single-machine cloud deployment, see [`deploy/fly.toml`](deploy/fly.toml), a Fly.io recipe that runs the scheduler daemon on a persistent volume, with a drop-in path to Postgres when you outgrow DuckDB. [`deploy/README.md`](deploy/README.md) has notes for other platforms.
 
 ## Architecture
 
@@ -217,24 +207,18 @@ src/sentinel/
 └── utils/              Logging, paths
 ```
 
----
-
 ## Further reading
 
-- [`CHANGELOG.md`](CHANGELOG.md) — what shipped in v0.1.0.
-- [`docs/methodology.md`](docs/methodology.md) — universe, walk-forward protocol, and decision rules for what counts as a finding. **Read this before interpreting any backtest number.**
-- [`docs/sample-outputs.md`](docs/sample-outputs.md) — captured Rich output for every major CLI command.
-- [`deploy/`](deploy/) — single-machine deployment recipes (Fly.io today).
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how the codebase is organized and how to extend it (new data sources, new models, new feature blocks).
+- [`CHANGELOG.md`](CHANGELOG.md): what shipped in v0.1.0.
+- [`docs/methodology.md`](docs/methodology.md): universe, walk-forward protocol, and decision rules for what counts as a finding. **Read this before interpreting any backtest number.**
+- [`docs/sample-outputs.md`](docs/sample-outputs.md): captured Rich output for every major CLI command.
+- [`deploy/`](deploy/): single-machine deployment recipes (Fly.io today).
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): how the codebase is organized and how to extend it (new data sources, new models, new feature blocks).
 
----
+## Risks and honest caveats
 
-## Risks & honest caveats
-
-Markets are noisy; relationships decay; social hype is often *reactive* rather than predictive; backtests can look great and still be fake if evaluation is sloppy. Sentinel is a research and engineering project — not a trading system, not financial advice. Any real-money decision based on its output would be irresponsible.
-
----
+Markets are noisy; relationships decay; social hype is often *reactive* rather than predictive; backtests can look great and still be fake if evaluation is sloppy. Sentinel is a research and engineering project, not a trading system, not financial advice. Any real-money decision based on its output would be irresponsible.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

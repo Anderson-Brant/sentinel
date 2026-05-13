@@ -2,10 +2,10 @@
 
 Two backends ship in-tree:
 
-* :class:`~sentinel.storage.duckdb_store.DuckDBStore` — default. Zero
+* :class:`~sentinel.storage.duckdb_store.DuckDBStore` - default. Zero
   setup, backed by a single file. Appropriate for local development and
   single-user research work.
-* :class:`~sentinel.storage.postgres_store.PostgresStore` — opt-in
+* :class:`~sentinel.storage.postgres_store.PostgresStore` - opt-in
   Postgres / TimescaleDB backend. Appropriate for multi-user, scheduled,
   or deployed setups. Enabled by setting
   ``SENTINEL_STORAGE_BACKEND=postgres`` and ``SENTINEL_POSTGRES_DSN``.

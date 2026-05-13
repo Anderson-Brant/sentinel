@@ -1,4 +1,4 @@
-"""finBERT sentiment scorer — a transformer-based alternative to VADER.
+"""finBERT sentiment scorer - a transformer-based alternative to VADER.
 
 Why this exists
 ---------------
@@ -20,7 +20,7 @@ Why the VADER-shape output
 The existing ingestion → scoring → aggregation → features pipeline is
 written against VADER's return shape (``compound / pos / neg / neu``).
 Keeping the same shape means the same aggregation code, the same
-ablation harness, and the same feature columns — the only thing that
+ablation harness, and the same feature columns - the only thing that
 changes is the *quality* of the per-post signal. That isolation is what
 makes "VADER vs finBERT" a clean ablation rather than a refactor.
 
@@ -33,7 +33,7 @@ Mapping
 
 Dependencies
 ------------
-``torch`` and ``transformers`` are optional — both are lazy-imported in
+``torch`` and ``transformers`` are optional - both are lazy-imported in
 the constructor. Sentinel still imports and runs without them.
 """
 
@@ -56,7 +56,7 @@ _INSTALL_HINT = (
 
 DEFAULT_MODEL = "ProsusAI/finbert"
 
-# Fallback label ordering for ``ProsusAI/finbert`` — the published
+# Fallback label ordering for ``ProsusAI/finbert`` - the published
 # checkpoint publishes ``id2label`` so this is only used if the config
 # is missing (e.g. a local checkpoint with a stripped config).
 _FALLBACK_ID2LABEL: dict[int, str] = {0: "positive", 1: "negative", 2: "neutral"}
@@ -65,7 +65,7 @@ _FALLBACK_ID2LABEL: dict[int, str] = {0: "positive", 1: "negative", 2: "neutral"
 class FinBertScorer:
     """Transformer-based sentiment scorer with a VADER-compatible output.
 
-    Construction is expensive — it downloads/loads a ~440 MB model and
+    Construction is expensive - it downloads/loads a ~440 MB model and
     tokenizer. Inference is one forward pass per text (batched internally
     to ``batch_size``). For that reason the scorer is designed to be
     constructed once per CLI invocation and reused across every post.
@@ -146,7 +146,7 @@ class FinBertScorer:
         """Return a ``{label_lower: id}`` map, robust to checkpoint drift.
 
         Raises if either of the critical labels (positive / negative) is
-        missing — without both, ``compound`` is ill-defined.
+        missing - without both, ``compound`` is ill-defined.
         """
         cfg = getattr(model, "config", None)
         raw = getattr(cfg, "id2label", None) if cfg is not None else None

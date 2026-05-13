@@ -2,7 +2,7 @@
 
 The adapter is intentionally thin and uses a dependency-injected
 ``ExchangeClient`` protocol, so we do not need ccxt installed in the test
-environment — a ``_FakeExchange`` plays the role of the exchange and we
+environment - a ``_FakeExchange`` plays the role of the exchange and we
 assert shape / invariants of the returned DataFrame.
 """
 
@@ -136,7 +136,7 @@ def test_symbol_map_dai_normalizes_to_usd():
 
 
 # ---------------------------------------------------------------------------
-# ingest_crypto_prices — happy path
+# ingest_crypto_prices - happy path
 # ---------------------------------------------------------------------------
 
 
@@ -254,7 +254,7 @@ def test_ingest_raises_when_exchange_returns_nothing():
 
 
 def test_registry_has_ingest_crypto():
-    # Kind is registered at import time — smoke-check so the scheduler YAML
+    # Kind is registered at import time - smoke-check so the scheduler YAML
     # entry won't KeyError in production.
     assert "ingest-crypto" in registered_kinds()
 

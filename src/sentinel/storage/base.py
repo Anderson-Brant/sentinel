@@ -1,6 +1,6 @@
 """Storage protocol.
 
-The modeling, ingestion, and CLI layers all talk to "a store" — they
+The modeling, ingestion, and CLI layers all talk to "a store" - they
 never needed to know it was DuckDB, they just imported ``DuckDBStore``
 directly because it was the only implementation. This module makes the
 contract explicit so a second implementation (Postgres / TimescaleDB)
@@ -9,7 +9,7 @@ can drop in behind the same surface.
 Design notes
 ------------
 * All writes are idempotent at the (symbol, date) or post_id level. A
-  re-run of the same ingest should converge to the same state — no
+  re-run of the same ingest should converge to the same state - no
   duplicate rows, no stale trailing rows.
 * ``write_features`` is the awkward one: the feature table's columns
   are dynamic (they depend on the configured feature blocks). DuckDB
@@ -116,7 +116,7 @@ JOB_RUN_COLUMNS: tuple[str, ...] = (
 )
 
 
-# Column contract for the tweets table. Mirrors REDDIT_POST_COLUMNS — one row
+# Column contract for the tweets table. Mirrors REDDIT_POST_COLUMNS - one row
 # per tweet, sentiment populated by a second pass. Engagement metrics are
 # Twitter-specific (likes / retweets / replies / quotes / impressions) so each
 # backend maps them to an integer column.

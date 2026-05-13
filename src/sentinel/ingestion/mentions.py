@@ -2,15 +2,15 @@
 
 Two strategies are combined:
 
-1. **Cashtag** — ``$TSLA``, ``$BTC-USD``. Unambiguous; always extracted.
-2. **Whitelist word** — if a whitelist of tickers is provided, uppercase tokens
+1. **Cashtag** - ``$TSLA``, ``$BTC-USD``. Unambiguous; always extracted.
+2. **Whitelist word** - if a whitelist of tickers is provided, uppercase tokens
    that match it are also extracted. This catches things like "AAPL earnings
    tomorrow" without the dollar-sign prefix. Without a whitelist this is
-   off by default — matching arbitrary 3–5-letter uppercase words produces
+   off by default - matching arbitrary 3–5-letter uppercase words produces
    way too much noise ("CEO", "USA", "MONDAY", etc.).
 
 Return type is a **set** of ticker strings (uppercased, no leading ``$``) so
-the same ticker mentioned 5 times in one post counts once — engagement
+the same ticker mentioned 5 times in one post counts once - engagement
 weighting happens later in the features layer.
 """
 
@@ -18,21 +18,21 @@ from __future__ import annotations
 
 import re
 
-# $AAPL, $BRK.B, $BTC-USD, $GOOG.L — letters, optional dot/dash suffix.
+# $AAPL, $BRK.B, $BTC-USD, $GOOG.L - letters, optional dot/dash suffix.
 _CASHTAG_RE = re.compile(r"\$([A-Za-z]{1,6}(?:[.\-][A-Za-z]{1,4})?)")
 
 # Uppercase words 2–6 chars long, not followed by letters/digits.
 _UPPER_WORD_RE = re.compile(r"\b([A-Z]{2,6})\b")
 
 # Common false positives when matching against a whitelist from free text.
-# Not exhaustive — this is a second line of defense on top of the whitelist.
+# Not exhaustive - this is a second line of defense on top of the whitelist.
 _NOISE = frozenset(
     {
         "CEO", "CFO", "CTO", "COO", "IPO", "ETF", "EPS", "FED", "USA", "YOLO",
         "FOMO", "USD", "EUR", "GBP", "JPY", "GDP", "CPI", "PCE", "Q1", "Q2",
         "Q3", "Q4", "EV", "AI", "ML", "NLP", "LLM", "API", "SQL", "SEC",
         "IRS", "DOJ", "FTC", "DOW", "SPY", "QQQ",  # keep SPY/QQQ? They ARE
-        # tickers — don't put them in the noise list if you want to track them.
+        # tickers - don't put them in the noise list if you want to track them.
         # Leaving them here means users MUST pass them via the whitelist.
     }
 )

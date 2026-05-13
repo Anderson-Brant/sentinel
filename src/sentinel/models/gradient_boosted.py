@@ -14,8 +14,8 @@ standard ``fit / predict / predict_proba`` API. They drop straight into
 (walk-forward, ablation, regime slicing) doesn't need to know what the
 underlying model is.
 
-Defaults are intentionally conservative — shallow trees, modest learning
-rate, row+column subsampling — to keep variance reasonable on financial
+Defaults are intentionally conservative - shallow trees, modest learning
+rate, row+column subsampling - to keep variance reasonable on financial
 time-series targets where signal-to-noise is low and overfit risk is the
 dominant failure mode.
 """

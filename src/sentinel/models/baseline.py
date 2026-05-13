@@ -6,13 +6,13 @@ downstream code (walk-forward, ablation, regime slicing) can call
 
 Supported families:
 
-    logistic          — LogisticRegression, class-weight balanced
-    random_forest     — RandomForestClassifier, class-weight balanced
-    xgboost           — XGBClassifier (optional dep, lazy-imported)
-    lightgbm          — LGBMClassifier (optional dep, lazy-imported)
+    logistic          - LogisticRegression, class-weight balanced
+    random_forest     - RandomForestClassifier, class-weight balanced
+    xgboost           - XGBClassifier (optional dep, lazy-imported)
+    lightgbm          - LGBMClassifier (optional dep, lazy-imported)
 
 Linear / distance-based models are wrapped in a StandardScaler step.
-Tree-based models are *not* — scaling is a no-op for trees and the
+Tree-based models are *not* - scaling is a no-op for trees and the
 extra pipeline step only adds noise to the pickle and to evaluation time.
 """
 
@@ -32,7 +32,7 @@ from sentinel.models.gradient_boosted import (
 # Models whose inputs benefit from zero-mean / unit-variance scaling.
 _SCALED_MODELS = {"logistic"}
 
-# Tree-based models — scaling is unnecessary, we wrap in a single-step
+# Tree-based models - scaling is unnecessary, we wrap in a single-step
 # Pipeline purely for interface uniformity.
 _TREE_MODELS = {"random_forest"} | GBM_MODELS
 

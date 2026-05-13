@@ -1,4 +1,4 @@
-"""Job registry — mapping ``kind`` string → callable.
+"""Job registry - mapping ``kind`` string → callable.
 
 Each registered job is a ``JobFn`` with the signature::
 
@@ -6,8 +6,8 @@ Each registered job is a ``JobFn`` with the signature::
 
 where ``JobResult`` is a plain dict with:
 
-* ``rows_written`` — integer row count written to the store.
-* ``detail`` — short human-readable one-liner for logs / CLI.
+* ``rows_written`` - integer row count written to the store.
+* ``detail`` - short human-readable one-liner for logs / CLI.
 
 Keeping the registry data-driven means adding a new scheduled operation is a
 one-line change here plus the function itself; no branching in the scheduler
@@ -82,7 +82,7 @@ def ingest_prices_job(
     """Pull OHLCV for each symbol and persist it.
 
     Each symbol is a separate yfinance call; failures are aggregated into the
-    detail string but do not abort subsequent symbols — we'd rather refresh
+    detail string but do not abort subsequent symbols - we'd rather refresh
     SPY than let a bad ticker block the whole run.
     """
     from sentinel.config import load_config
@@ -99,7 +99,7 @@ def ingest_prices_job(
             df = _ingest(symbol, start=start, end=end, interval=interval)
             n = store.write_prices(symbol, df)
             total += n
-        except Exception as e:  # noqa: BLE001 — per-symbol isolation
+        except Exception as e:  # noqa: BLE001 - per-symbol isolation
             failed.append(f"{symbol}: {e}")
             log.warning("ingest-prices failed for %s: %s", symbol, e)
 
@@ -192,7 +192,7 @@ def ingest_crypto_job(
 ) -> JobResult:
     """Pull crypto OHLCV for each symbol via CCXT and persist it.
 
-    Crypto bars share the ``prices`` table with equities — symbols are stored
+    Crypto bars share the ``prices`` table with equities - symbols are stored
     in yfinance-style (``BTC-USD``) regardless of which stablecoin the
     exchange quotes in.
     """
@@ -223,7 +223,7 @@ def ingest_crypto_job(
             )
             n = store.write_prices(stored_symbol, df)
             total += n
-        except Exception as e:  # noqa: BLE001 — per-symbol isolation
+        except Exception as e:  # noqa: BLE001 - per-symbol isolation
             failed.append(f"{symbol}: {e}")
             log.warning("ingest-crypto failed for %s: %s", symbol, e)
 
@@ -308,7 +308,7 @@ def build_features_job(
             features = build_feature_table(prices, cfg=cfg, sentiment=sentiment_df)
             n = store.write_features(symbol, features)
             total += n
-        except Exception as e:  # noqa: BLE001 — per-symbol isolation
+        except Exception as e:  # noqa: BLE001 - per-symbol isolation
             failed.append(f"{symbol}: {e}")
             log.warning("build-features failed for %s: %s", symbol, e)
 

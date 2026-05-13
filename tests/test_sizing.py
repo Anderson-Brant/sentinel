@@ -1,7 +1,7 @@
 """Tests for the position-sizing primitives.
 
 These cover the pure functions in `sentinel.backtest.sizing` independent
-of the engine — formula correctness, edge cases (zero vol, NaN warmup),
+of the engine - formula correctness, edge cases (zero vol, NaN warmup),
 and parameter validation.
 """
 

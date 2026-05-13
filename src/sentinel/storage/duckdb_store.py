@@ -17,7 +17,7 @@ Schema is intentionally small. Tables:
 Writes are idempotent:
     - prices/features: DELETE + INSERT per symbol.
     - reddit_posts: upsert by post_id (INSERT OR REPLACE semantics via DELETE+INSERT).
-    - mentions: scoped to (source, post_id) — delete all rows for an incoming
+    - mentions: scoped to (source, post_id) - delete all rows for an incoming
       post before re-inserting.
 """
 
@@ -166,7 +166,7 @@ class DuckDBStore:
         return df
 
     # ------------------------------------------------------------------
-    # features — schema is dynamic, so we use `CREATE OR REPLACE TABLE`
+    # features - schema is dynamic, so we use `CREATE OR REPLACE TABLE`
     # scoped per symbol namespace.
     # ------------------------------------------------------------------
 
@@ -238,7 +238,7 @@ class DuckDBStore:
     def write_reddit_posts(self, posts: pd.DataFrame) -> int:
         """Upsert Reddit posts by post_id.
 
-        Missing sentiment columns are tolerated — they get filled with NULL so
+        Missing sentiment columns are tolerated - they get filled with NULL so
         sentiment scoring can be a separate pass run later.
         """
         if posts is None or posts.empty:
@@ -446,7 +446,7 @@ class DuckDBStore:
         return len(df)
 
     # ------------------------------------------------------------------
-    # job_runs — durable log for sentinel.scheduling
+    # job_runs - durable log for sentinel.scheduling
     # ------------------------------------------------------------------
 
     def record_job_run(self, run) -> int:

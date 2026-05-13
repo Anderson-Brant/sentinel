@@ -1,7 +1,7 @@
 """Unit tests for the feature engineering layer.
 
 These are deliberately focused on correctness properties, not on "did the model
-beat the benchmark" — that's the evaluation layer's job.
+beat the benchmark" - that's the evaluation layer's job.
 """
 
 from __future__ import annotations

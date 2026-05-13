@@ -5,7 +5,7 @@ clean interpretability choice for showing "does the model pick direction
 correctly?", but it's not how real portfolios are managed. A fixed unit
 position takes a *lot* more risk in a high-vol regime than a low-vol one,
 which means the strategy's P&L is dominated by whatever happens during
-volatile periods — masking whether the edge is consistent.
+volatile periods - masking whether the edge is consistent.
 
 Volatility targeting fixes this by scaling each position so that the
 *expected* contribution to portfolio volatility is constant through time:
@@ -21,7 +21,7 @@ position series.
 Notes on look-ahead: ``realized_volatility`` at index ``t`` uses returns
 *through* ``t`` (the ``.rolling(window).std()`` is right-edge aligned).
 That is fine because the engine shifts the final position forward by one
-bar before multiplying with returns — so the position held on day ``t+1``
+bar before multiplying with returns - so the position held on day ``t+1``
 only depends on information available by close of day ``t``.
 """
 
@@ -76,7 +76,7 @@ def vol_target_scale(
     Returns
     -------
     A float series aligned to ``realized_vol_annual``. NaN rows (warmup)
-    stay NaN — the caller is responsible for deciding how to handle those
+    stay NaN - the caller is responsible for deciding how to handle those
     (the engine treats NaN → 0 position, i.e. "stay flat during warmup").
     """
     if target_vol_annual <= 0:

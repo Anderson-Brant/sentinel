@@ -155,7 +155,7 @@ def walk_forward_predictions(
     """Produce out-of-sample P(up) probabilities using rolling-origin splits.
 
     Returns a Series aligned to ``features.index``. Rows inside the initial
-    warm-up (before ``min_train_size``) are NaN — the backtest should interpret
+    warm-up (before ``min_train_size``) are NaN - the backtest should interpret
     those as "no signal, no position".
 
     This is the series the backtest engine should consume. Feeding it

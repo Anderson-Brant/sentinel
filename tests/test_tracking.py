@@ -3,7 +3,7 @@
 We stub `mlflow` via sys.modules so the tests pass whether or not mlflow is
 installed on the runner. What we're pinning down:
 
-    * NullTracker truly no-ops (important — it's the default when --track is off)
+    * NullTracker truly no-ops (important - it's the default when --track is off)
     * MLflowTracker forwards calls to mlflow with the right arguments
     * Missing mlflow raises an actionable ImportError with the install hint
     * log_metrics silently drops NaN / inf / None (mlflow rejects them)
@@ -160,7 +160,7 @@ def test_mlflow_tracker_log_params_forwards(fake_mlflow):
 
 
 def test_mlflow_tracker_log_params_coerces_none(fake_mlflow):
-    """mlflow.log_params rejects None values — MLflowTracker coerces to 'None'."""
+    """mlflow.log_params rejects None values - MLflowTracker coerces to 'None'."""
     t = tracking_mod.MLflowTracker(experiment="sentinel")
     t.log_params({"target_vol_annual": None, "symbol": "SPY"})
     sent = fake_mlflow["log_params"][-1]

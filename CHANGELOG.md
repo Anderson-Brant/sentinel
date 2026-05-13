@@ -12,10 +12,10 @@ Typer-option-defaulted parameter when it calls sub-commands as plain Python
 functions, so unresolved `OptionInfo` sentinels never reach MLflow.
 
 
-## [0.1.0] — 2026-04-18
+## [0.1.0] 2026-04-18
 
 Initial public release. Sentinel is feature-complete against its v0.1
-roadmap: a working multi-source ingest → features → train → evaluate →
+roadmap: a working multi-source ingest, features, train, evaluate, and
 backtest loop with proper time-series discipline, pluggable storage, two
 gradient-boosted model adapters, vol-targeted sizing, ablation/regime
 analysis, MLflow tracking, SHAP importance, a declarative scheduler with a
@@ -29,7 +29,7 @@ durable run log, and a containerized deployment story.
   yfinance-style symbol normalization (`BTC-USD` ↔ exchange `BTC/USDT`,
   with USDC/DAI/BUSD/TUSD also collapsing to `-USD` for storage). Same
   `prices` table as equities, so the rest of the pipeline is asset-class
-  agnostic. (`sentinel ingest crypto`, `[crypto]` extra.)
+  agnostic (`sentinel ingest crypto`, `[crypto]` extra).
 - Reddit ingestion via `praw` with cashtag + whitelist mention extraction
   (`sentinel ingest reddit`, `[social]` extra).
 - X/Twitter ingestion via `tweepy` v2 with cashtag query builder,
@@ -38,14 +38,14 @@ durable run log, and a containerized deployment story.
 
 #### Storage
 - Pluggable `Store` protocol with two backends:
-  - **DuckDB** (default) — single-file, zero-setup local analytics.
-  - **Postgres / TimescaleDB** — opt-in via
+  - **DuckDB** (default): single-file, zero-setup local analytics.
+  - **Postgres / TimescaleDB**: opt-in via
     `SENTINEL_STORAGE_BACKEND=postgres`, `[postgres]` extra. Hypertables
     on `prices` / `reddit_posts` / `tweets` when the Timescale extension
     is available; soft-falls back to plain Postgres tables otherwise.
 - Schema is created on first connect; feature columns are added
   dynamically with `ALTER TABLE ADD COLUMN` as new feature blocks come
-  online — no migrations needed for the v0.1 surface.
+  online, no migrations needed for the v0.1 surface.
 
 #### Features
 - Technical block: returns, SMA/EMA, realized vol, momentum, volume.
@@ -66,14 +66,14 @@ durable run log, and a containerized deployment story.
 - Vol-targeted position sizing in the backtest:
   `size = target_vol / realized_vol`, capped by `--max-leverage`,
   1-bar shifted to avoid lookahead.
-- Backtest output: equity curve, Sharpe, max drawdown, hit rate,
+- Backtest output: equity curve, Sharpe, max drawdown, hit rate, and a
   vs.-buy-and-hold comparison.
 
 #### Analysis surfaces
 - Ablation harness (`sentinel ablate`): trains tech-only, sentiment-only,
   and hybrid variants on identical walk-forward splits.
-- Regime detection + regime-sliced reporting (`sentinel regimes`):
-  vol terciles + bull/bear SMA crossover.
+- Regime detection plus regime-sliced reporting (`sentinel regimes`):
+  vol terciles plus bull/bear SMA crossover.
 - Feature importance (`sentinel explain`): permutation (dep-free) and
   SHAP (`[explain]` extra).
 - Rich console reporting across all of the above.

@@ -1,6 +1,6 @@
 """Scheduler data types + interval parsing.
 
-Keep these dataclasses pure — no I/O, no dependencies on the store. That
+Keep these dataclasses pure - no I/O, no dependencies on the store. That
 keeps them cheap to test and easy to serialize if we ever move scheduling
 state out of the local Store.
 """
@@ -17,7 +17,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 # Accept "30s", "15m", "2h", "1d" (case-insensitive), or a bare integer/float
-# meaning seconds. This is intentionally narrow — a full cron grammar would
+# meaning seconds. This is intentionally narrow - a full cron grammar would
 # be overkill for the jobs we run (everything is "every N units").
 _INTERVAL_RE = re.compile(r"^\s*(?P<n>\d+(?:\.\d+)?)\s*(?P<unit>[smhd])?\s*$", re.IGNORECASE)
 _UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
@@ -99,7 +99,7 @@ class JobSpec:
 
 
 # ---------------------------------------------------------------------------
-# JobRun — persisted result of a single invocation
+# JobRun - persisted result of a single invocation
 # ---------------------------------------------------------------------------
 
 

@@ -12,7 +12,7 @@ Design notes
 - The fetch step is factored into a :class:`TweetFetcher` protocol so tests
   can inject a fake that returns canned records without touching the network.
   This mirrors :class:`sentinel.ingestion.reddit.PostFetcher`.
-- Sentiment scoring is intentionally *not* done here — raw tweets land first,
+- Sentiment scoring is intentionally *not* done here - raw tweets land first,
   and :mod:`sentinel.features.sentiment` fills in the scores in a second pass.
   That separation keeps the network-bound step idempotent and lets sentiment
   re-runs happen without re-hitting the Twitter API.
@@ -40,7 +40,7 @@ log = get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Dataclass — matches the tweets table (sentiment columns filled later)
+# Dataclass - matches the tweets table (sentiment columns filled later)
 # ---------------------------------------------------------------------------
 
 
@@ -66,7 +66,7 @@ class Tweet:
 
     def to_dict(self) -> dict:
         d = asdict(self)
-        # Storage uses naive UTC timestamps — tweepy returns tz-aware datetimes.
+        # Storage uses naive UTC timestamps - tweepy returns tz-aware datetimes.
         if isinstance(d["created_ts"], datetime) and d["created_ts"].tzinfo is not None:
             d["created_ts"] = d["created_ts"].astimezone(UTC).replace(tzinfo=None)
         return d
@@ -93,7 +93,7 @@ class TwitterClient:
     """Thin wrapper around tweepy v2. Lazy-imports tweepy on first use.
 
     Requires ``TWITTER_BEARER_TOKEN`` in the environment (or .env). The
-    client is read-only — we never post anything back.
+    client is read-only - we never post anything back.
     """
 
     def __init__(self, secrets: Secrets | None = None) -> None:
@@ -243,7 +243,7 @@ def ingest_tweets(
     store : Target store. Created via ``get_store()`` if ``None``.
     twitter_cfg : Twitter ingest settings (currently just ``max_tweets_per_run``).
     symbol_whitelist : Tickers to track. Used both to build the search query
-        (cashtag OR) and to filter mention extraction to known tickers — so
+        (cashtag OR) and to filter mention extraction to known tickers - so
         we never record spurious tickers like "$LOL".
     query : Optional raw query string. If supplied it replaces the one built
         from the whitelist; the whitelist is still used for mention filtering.
@@ -254,7 +254,7 @@ def ingest_tweets(
     Dict with counts: ``{"fetched", "tweets_written", "mentions_written"}``.
     """
     if store is None:
-        from sentinel.storage import get_store  # local import — avoids cycle
+        from sentinel.storage import get_store  # local import - avoids cycle
         store = get_store()
 
     twitter_cfg = twitter_cfg or IngestionTwitterConfig()
@@ -278,7 +278,7 @@ def ingest_tweets(
     rows = [t.to_dict() for t in tweets]
     tweets_df = pd.DataFrame(rows)
 
-    # Twitter has no "title" — everything is in ``text``. The mentions
+    # Twitter has no "title" - everything is in ``text``. The mentions
     # extractor already handles a single text field via ``text_fields``.
     mention_records = extract_mentions_for_records(
         [{"id": r["tweet_id"], "text": r["text"]} for r in rows],

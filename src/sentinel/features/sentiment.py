@@ -2,12 +2,12 @@
 
 Public entry points:
 
-    1. :func:`score_posts` — VADER-scores each raw Reddit post. Intended to be
+    1. :func:`score_posts` - VADER-scores each raw Reddit post. Intended to be
        called after :func:`sentinel.ingestion.reddit.ingest_posts` has landed
        rows in ``reddit_posts``.
-    2. :func:`score_tweets` — VADER-scores each raw tweet. Mirror of
+    2. :func:`score_tweets` - VADER-scores each raw tweet. Mirror of
        :func:`score_posts` for the ``tweets`` table.
-    3. :func:`sentiment_features_for_symbol` — rolls up the scored posts and
+    3. :func:`sentiment_features_for_symbol` - rolls up the scored posts and
        tweets into a per-date feature block that joins cleanly onto the
        technical table.
 
@@ -109,7 +109,7 @@ def score_posts(
     """Attach VADER scores to each row in ``posts``.
 
     Returns a DataFrame with columns ``post_id``, ``sentiment_compound``,
-    ``sentiment_pos``, ``sentiment_neg``, ``sentiment_neu`` — ready to feed
+    ``sentiment_pos``, ``sentiment_neg``, ``sentiment_neu`` - ready to feed
     into :meth:`Store.update_reddit_sentiment`.
 
     Title and body are concatenated before scoring because post titles on
@@ -128,18 +128,18 @@ def score_tweets(
     """Attach VADER scores to each row in ``tweets``.
 
     Returns a DataFrame with columns ``tweet_id``, ``sentiment_compound``,
-    ``sentiment_pos``, ``sentiment_neg``, ``sentiment_neu`` — ready to feed
+    ``sentiment_pos``, ``sentiment_neg``, ``sentiment_neu`` - ready to feed
     into :meth:`Store.update_tweet_sentiment`.
     """
     return _score_rows(tweets, id_col="tweet_id", text_fields=text_fields, scorer=scorer)
 
 
 # ---------------------------------------------------------------------------
-# Aggregation — per-symbol, per-date rollups
+# Aggregation - per-symbol, per-date rollups
 # ---------------------------------------------------------------------------
 
 
-# Reddit-sourced columns. Stable — the ablation harness refers to these by name.
+# Reddit-sourced columns. Stable - the ablation harness refers to these by name.
 REDDIT_SENTIMENT_FEATURE_COLS = (
     "reddit_mention_count",
     "reddit_sentiment_mean",
@@ -152,7 +152,7 @@ REDDIT_SENTIMENT_FEATURE_COLS = (
 )
 
 
-# Twitter-sourced columns. Mirrors the Reddit set — same shape, same derivation.
+# Twitter-sourced columns. Mirrors the Reddit set - same shape, same derivation.
 TWITTER_SENTIMENT_FEATURE_COLS = (
     "twitter_mention_count",
     "twitter_sentiment_mean",
@@ -165,7 +165,7 @@ TWITTER_SENTIMENT_FEATURE_COLS = (
 )
 
 
-# Combined — everything the sentiment block emits. Consumed by the ablation
+# Combined - everything the sentiment block emits. Consumed by the ablation
 # harness to distinguish "sentiment" columns from "technical" ones.
 SENTIMENT_FEATURE_COLS = REDDIT_SENTIMENT_FEATURE_COLS + TWITTER_SENTIMENT_FEATURE_COLS
 
@@ -188,7 +188,7 @@ def _daily_rollup(
     posts : DataFrame with columns ``created_ts``, ``sentiment_compound``,
         ``sentiment_pos``, ``sentiment_neg`` plus whatever fields ``weight_expr``
         needs to compute per-row engagement weight.
-    prefix : column prefix — ``reddit`` or ``twitter``.
+    prefix : column prefix - ``reddit`` or ``twitter``.
     weight_expr : callable(df) → pd.Series of non-negative engagement weights.
     """
     df = posts.copy()
@@ -285,7 +285,7 @@ def sentiment_features_for_symbol(
     reindexed to it (missing days → zero mentions, NaN sentiment) so it
     joins cleanly onto the technical feature table.
 
-    Either source can be empty — the other still produces its block, with
+    Either source can be empty - the other still produces its block, with
     the missing source emitting all-zero / NaN columns. This keeps the
     ablation harness ("sentiment only") honest when only one platform is
     connected.
@@ -301,7 +301,7 @@ def sentiment_features_for_symbol(
     feats = reddit.join(twitter, how="outer") if not reddit.empty else twitter
     if feats is None or feats.empty:
         log.info(
-            "No Reddit or Twitter data found for %s — returning empty frame",
+            "No Reddit or Twitter data found for %s - returning empty frame",
             symbol,
         )
         if index is None:
@@ -333,7 +333,7 @@ def _read_tweets_for_symbol_compat(store: Store, symbol: str) -> pd.DataFrame:
         return pd.DataFrame()
     try:
         return reader(symbol)
-    except Exception as e:  # noqa: BLE001 — defensive, logged below
+    except Exception as e:  # noqa: BLE001 - defensive, logged below
         log.debug("read_tweets_for_symbol fell through for %s: %s", symbol, e)
         return pd.DataFrame()
 

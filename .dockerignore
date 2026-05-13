@@ -1,4 +1,4 @@
-# Keep the build context lean — only copy what the Dockerfile actually needs.
+# Keep the build context lean - only copy what the Dockerfile actually needs.
 # This also avoids leaking local secrets / state into image layers.
 
 # VCS + CI

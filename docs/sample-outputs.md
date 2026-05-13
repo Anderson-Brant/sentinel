@@ -2,17 +2,15 @@
 
 This document shows the **shape and style** of output for each major
 Sentinel command, captured from development runs. It is a reference for
-the reporting surface — not a statement about real market results. For a
+the reporting surface, not a statement about real market results. For a
 discussion of what Sentinel should actually *find* on real data, see
 [`methodology.md`](./methodology.md).
 
 All output is colorized Rich in a real terminal; colors are stripped here.
 
----
-
 ## `sentinel demo SPY`
 
-End-to-end smoke run: ingest → features → train → evaluate → backtest on
+End-to-end smoke run: ingest, features, train, evaluate, backtest on
 one symbol, one model. Useful first-run sanity check.
 
 ```
@@ -25,14 +23,12 @@ one symbol, one model. Useful first-run sanity check.
           summary: cagr=0.071 sharpe=0.88 max_dd=-0.144 hit_rate=0.523 vs_bh=+0.8% cagr
 ```
 
----
-
 ## `sentinel train SPY --model xgboost`
 
 Fits a single model, prints the metric summary + per-class report.
 
 ```
-        XGBoost — SPY directional classifier
+        XGBoost: SPY directional classifier
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
 ┃ Metric                       ┃ Value ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
@@ -49,14 +45,12 @@ Fits a single model, prints the metric summary + per-class report.
 Saved: models/SPY__xgboost__2026-04-18T19-02-11Z.pkl
 ```
 
----
-
 ## `sentinel evaluate SPY`
 
 Walk-forward fold-by-fold results.
 
 ```
-    Walk-forward evaluation — SPY, logistic, folds=10
+    Walk-forward evaluation: SPY, logistic, folds=10
 ┏━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━┓
 ┃ Fold ┃ Train end  ┃ Test end   ┃ N     ┃ Acc.   ┃ LogL   ┃
 ┡━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━┩
@@ -71,14 +65,12 @@ Walk-forward fold-by-fold results.
 └──────┴────────────┴────────────┴───────┴────────┴────────┘
 ```
 
----
-
 ## `sentinel backtest SPY --cost-bps 2.0`
 
 Strategy simulation on the out-of-sample probability stream.
 
 ```
-         Backtest — SPY, logistic, 2017-03-24 → 2026-04-17
+         Backtest: SPY, logistic, 2017-03-24 to 2026-04-17
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Metric                       ┃ Strategy   ┃ Buy & hold ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━┩
@@ -88,13 +80,11 @@ Strategy simulation on the out-of-sample probability stream.
 │ Max drawdown                 │  -0.144    │  -0.342    │
 │ Hit rate (daily)             │   0.521    │   0.539    │
 │ Turnover (annualized)        │   47.2     │    0.0     │
-│ Cost drag                    │  -0.0094   │    —       │
+│ Cost drag                    │  -0.0094   │    n/a     │
 └──────────────────────────────┴────────────┴────────────┘
 
 Saved: reports/SPY__backtest__2026-04-18T19-02-13Z.json
 ```
-
----
 
 ## `sentinel backtest SPY --vol-target 0.10 --max-leverage 2.0`
 
@@ -102,7 +92,7 @@ Vol-targeted sizing on the same signal. Sharpe typically improves; CAGR
 is bounded by the leverage cap.
 
 ```
-   Vol-targeted backtest — SPY, target_vol=0.10, max_leverage=2.0
+   Vol-targeted backtest: SPY, target_vol=0.10, max_leverage=2.0
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Metric                       ┃ Strategy   ┃ Buy & hold ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━┩
@@ -110,18 +100,16 @@ is bounded by the leverage cap.
 │ Sharpe                       │   1.18     │   0.71     │
 │ Max drawdown                 │  -0.087    │  -0.342    │
 │ Avg gross leverage           │   1.31     │   1.00     │
-│ Time above max_leverage      │   11.2%    │    —       │
+│ Time above max_leverage      │   11.2%    │    n/a     │
 └──────────────────────────────┴────────────┴────────────┘
 ```
-
----
 
 ## `sentinel ablate SPY`
 
 Three variants trained on identical walk-forward splits.
 
 ```
-                  Ablation — SPY, walk-forward folds=10
+                  Ablation: SPY, walk-forward folds=10
 ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
 ┃ Variant           ┃ Acc.   ┃ LogL   ┃ Sharpe ┃ Max DD   ┃ vs. B&H ┃
 ┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
@@ -135,15 +123,13 @@ Note: sentiment-only is weaker than technical-only on daily SPY data with VADER.
       before claiming sentiment adds durable edge.
 ```
 
----
-
 ## `sentinel regimes SPY`
 
 Strategy vs. benchmark, sliced by realized-vol tercile and bull/bear
 (SMA-200 crossover).
 
 ```
-                  Regime-sliced performance — SPY, 2017-2026
+                  Regime-sliced performance: SPY, 2017-2026
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┓
 ┃ Regime                  ┃ Bars  ┃ Strat CAGR┃ B&H CAGR  ┃ Δ CAGR  ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━┩
@@ -159,14 +145,12 @@ Read: the strategy's defensive behavior in high-vol bears is where it pays
       for the cost drag it carries in low-vol bulls.
 ```
 
----
-
 ## `sentinel explain SPY --model xgboost --method shap --top 10`
 
 Top-N feature importance from the trained model.
 
 ```
-         SHAP importance — SPY, xgboost
+         SHAP importance: SPY, xgboost
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┓
 ┃ Feature                  ┃ |SHAP|  ┃ rank   ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━┩
@@ -182,8 +166,6 @@ Top-N feature importance from the trained model.
 │ reddit_sent_mean_7       │ 0.0087  │  10    │
 └──────────────────────────┴─────────┴────────┘
 ```
-
----
 
 ## `sentinel schedule status`
 
@@ -203,8 +185,6 @@ Per-job: last successful run, next due tick, enabled state.
 └────────────────────┴───────────┴─────────────────────┴─────────────────────┴─────────┘
 ```
 
----
-
 ## `sentinel schedule history --limit 5`
 
 Every run (success / error / skipped) is appended to the durable
@@ -223,8 +203,6 @@ Every run (success / error / skipped) is appended to the durable
 └────────────────────┴─────────────────────┴─────────┴────────┴───────────────────────┘
 ```
 
----
-
 ## Notes on reproducing these
 
 Numbers in this doc are from development runs and are **not** a
@@ -239,6 +217,6 @@ sentinel regimes SPY
 sentinel explain SPY --model xgboost --method shap --top 10
 ```
 
-The intended evaluation protocol — symbol universe, time ranges,
-baselines to beat, and what counts as a "real" finding vs. noise — is
+The intended evaluation protocol (symbol universe, time ranges,
+baselines to beat, and what counts as a "real" finding vs. noise) is
 written up in [`methodology.md`](./methodology.md).

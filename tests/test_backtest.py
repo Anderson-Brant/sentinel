@@ -192,7 +192,7 @@ def test_vol_target_produces_float_positions_bounded_by_max_leverage():
 
 
 def test_vol_target_no_lookahead():
-    """Vol-targeted sizing must still obey the 1-bar shift — a signal on day t can
+    """Vol-targeted sizing must still obey the 1-bar shift - a signal on day t can
     only influence P&L on day t+1."""
     # Long flat period then a big jump on day 30. Signal appears on day 29.
     closes = [100.0] * 30 + [200.0] + [200.0] * 10
@@ -238,7 +238,7 @@ def test_vol_target_lowers_size_in_noisier_regime():
 
 
 def test_vol_target_cost_grows_with_size_changes():
-    """Under vol-targeting, costs are charged on |Δposition| — so swings in
+    """Under vol-targeting, costs are charged on |Δposition| - so swings in
     the scale series produce costs even when the direction never changes."""
     n = 80
     closes = (100 * np.exp(np.cumsum(np.random.default_rng(3).normal(0, 0.02, n)))).tolist()

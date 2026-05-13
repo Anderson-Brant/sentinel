@@ -1,4 +1,4 @@
-# Sentinel — Fly.io deployment.
+# Sentinel - Fly.io deployment.
 #
 # Single-machine scheduler daemon on the default DuckDB profile, backed by
 # a persistent volume for /data. To launch:
@@ -28,7 +28,7 @@ kill_timeout = 30
   SENTINEL_DB_PATH = "/data/sentinel.duckdb"
   SENTINEL_LOG_LEVEL = "INFO"
 
-# Scheduler daemon — no public HTTP surface in v0.1, so no [[services]] block.
+# Scheduler daemon - no public HTTP surface in v0.1, so no [[services]] block.
 # The container's default CMD is `schedule run --forever`, which Fly will
 # restart under its process manager if it exits.
 [processes]
@@ -42,7 +42,7 @@ kill_timeout = 30
   destination = "/data"
   processes = ["scheduler"]
 
-# Small VM — the scheduler is I/O-bound (network + DuckDB writes), not
+# Small VM - the scheduler is I/O-bound (network + DuckDB writes), not
 # compute-heavy. Bump to shared-cpu-2x + 1024MB before enabling finBERT
 # or LightGBM on large symbol lists.
 [[vm]]
@@ -50,7 +50,7 @@ kill_timeout = 30
   memory = "512mb"
   processes = ["scheduler"]
 
-# Healthcheck mirrors the Dockerfile HEALTHCHECK — `sentinel version`
+# Healthcheck mirrors the Dockerfile HEALTHCHECK - `sentinel version`
 # exercises the CLI import graph. If any optional dep fails at startup
 # this will trip and Fly will recycle the VM.
 [[restart]]

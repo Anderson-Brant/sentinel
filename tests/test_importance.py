@@ -3,7 +3,7 @@
 Two things we want to prove:
 
     1. ``permutation_importance`` correctly ranks a known-signal column
-       first, even for a deliberately dumb oracle classifier — the
+       first, even for a deliberately dumb oracle classifier - the
        algorithm, not the model, is what's on trial.
     2. ``shap_importance`` passes the right things to ``shap.Explainer``
        and correctly reduces the output into a sorted DataFrame. We stub
@@ -31,7 +31,7 @@ from sentinel.evaluation.importance import (
 )
 
 # ---------------------------------------------------------------------------
-# Permutation importance — synthetic signal
+# Permutation importance - synthetic signal
 # ---------------------------------------------------------------------------
 
 
@@ -76,7 +76,7 @@ def test_permutation_importance_ranks_signal_first(synthetic_binary):
     # Noise features should have substantially smaller drops.
     top_drop = float(result.df.iloc[0]["mean_importance"])
     other_drops = result.df.iloc[1:]["mean_importance"].astype(float).to_numpy()
-    assert top_drop > 0.25  # meaningful drop — ~1.0 minus noise accuracy
+    assert top_drop > 0.25  # meaningful drop - ~1.0 minus noise accuracy
     assert all(abs(d) < top_drop / 2 for d in other_drops)
 
 
@@ -150,7 +150,7 @@ def test_permutation_importance_top_n():
 
 
 # ---------------------------------------------------------------------------
-# SHAP importance — with stubbed shap
+# SHAP importance - with stubbed shap
 # ---------------------------------------------------------------------------
 
 
@@ -180,7 +180,7 @@ def _make_fake_shap(values: np.ndarray):
 
 @pytest.fixture
 def shap_2d_values():
-    # 4 samples x 3 features — feature 1 dominates
+    # 4 samples x 3 features - feature 1 dominates
     return np.array(
         [
             [0.1, 0.9, -0.05],
@@ -266,7 +266,7 @@ def test_shap_importance_handles_3d_values(monkeypatch):
     # Class-1 importances should drive the ranking, so "b" wins.
     assert result.df.iloc[0]["feature"] == "b"
     # Class-0 is all zeros, so if we'd accidentally aggregated everything
-    # the top importance would be small — confirm we actually took class 1.
+    # the top importance would be small - confirm we actually took class 1.
     assert float(result.df.iloc[0]["mean_importance"]) > 0.45
 
 

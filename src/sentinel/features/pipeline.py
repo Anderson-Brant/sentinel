@@ -36,7 +36,7 @@ def build_feature_table(
         :func:`sentinel.features.sentiment.sentiment_features_for_symbol`).
         When provided, its columns are left-joined onto the technical block.
         Missing sentiment days have ``reddit_mention_count`` filled with 0 so
-        we keep the price row instead of dropping it — the remaining sentiment
+        we keep the price row instead of dropping it - the remaining sentiment
         columns may still be NaN, which the modeling layer can drop or
         impute. Passing ``None`` (the default) keeps the MVP technical-only
         behavior and lets us run the ablation "technical vs hybrid" cleanly.
@@ -63,7 +63,7 @@ def build_feature_table(
     feats = pd.concat(blocks, axis=1)
 
     # Drop absolute-level features that don't generalize across price regimes
-    # (SMAs, EMAs — we keep the normalized `close_to_sma_*` versions instead).
+    # (SMAs, EMAs - we keep the normalized `close_to_sma_*` versions instead).
     level_cols = [c for c in feats.columns if c.startswith(("sma_", "ema_")) and "over" not in c]
     feats = feats.drop(columns=level_cols, errors="ignore")
 
@@ -79,7 +79,7 @@ def build_feature_table(
         for c in MENTION_COUNT_COLS:
             if c in sent.columns:
                 sent[c] = sent[c].fillna(0)
-        # Other sentiment columns stay NaN on no-post days — the final dropna
+        # Other sentiment columns stay NaN on no-post days - the final dropna
         # would kill every row, so we neutralize them to 0 here (mean/ratios).
         for c in sent.columns:
             if c not in MENTION_COUNT_COLS:

@@ -1,6 +1,6 @@
 """Meta-tests: the release polish doesn't silently drift.
 
-These assertions don't exercise any code — they guard the written
+These assertions don't exercise any code - they guard the written
 artifacts (CHANGELOG, docs/, deploy/, CONTRIBUTING) against rot. If
 someone renames a file, bumps the version without updating the
 CHANGELOG, or removes a doc the README cross-links, CI fails loudly
@@ -46,7 +46,7 @@ def pyproject() -> str:
 
 
 # ---------------------------------------------------------------------------
-# Presence — every artifact the README promises actually exists
+# Presence - every artifact the README promises actually exists
 # ---------------------------------------------------------------------------
 
 
@@ -87,7 +87,7 @@ def test_changelog_is_keepachangelog_style(changelog):
 
 
 # ---------------------------------------------------------------------------
-# Cross-references — every relative link in README/docs/deploy resolves
+# Cross-references - every relative link in README/docs/deploy resolves
 # ---------------------------------------------------------------------------
 
 
@@ -97,7 +97,7 @@ def test_changelog_is_keepachangelog_style(changelog):
 )
 def test_relative_links_resolve(source_file):
     text = source_file.read_text()
-    # `[label](target)` — skip absolute URLs, anchors, and mailto.
+    # `[label](target)` - skip absolute URLs, anchors, and mailto.
     for match in re.finditer(r"\]\(([^)]+)\)", text):
         target = match.group(1).split("#", 1)[0].split(" ", 1)[0]
         if not target:
@@ -143,13 +143,13 @@ def test_dockerfile_installs_production_extras():
 
 
 # ---------------------------------------------------------------------------
-# Roadmap sanity — the README must not advertise unshipped work
+# Roadmap sanity - the README must not advertise unshipped work
 # ---------------------------------------------------------------------------
 
 
 def test_readme_has_no_unchecked_roadmap_items(readme):
     # v0.1 ships everything, so any `- [ ]` checkbox left in the README is a
-    # drift signal — either work slipped, or the README wasn't updated. The
+    # drift signal - either work slipped, or the README wasn't updated. The
     # roadmap itself lives in CHANGELOG.md now; this guards against someone
     # reintroducing a Roadmap section with unchecked items.
     unchecked = re.findall(r"^- \[ \] .+$", readme, flags=re.MULTILINE)

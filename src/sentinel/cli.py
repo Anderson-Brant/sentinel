@@ -152,13 +152,13 @@ def score_reddit_sentiment(
     from sentinel.storage import get_store
 
     store = get_store()
-    # Pull every row — backend-agnostic; tables are small and this is a batch op.
+    # Pull every row - backend-agnostic; tables are small and this is a batch op.
     posts = store.read_all_reddit_posts()
     tweets = store.read_all_tweets()
 
     if posts.empty and tweets.empty:
         console.print(
-            "[yellow]No Reddit posts or tweets in storage — nothing to score.[/yellow]"
+            "[yellow]No Reddit posts or tweets in storage - nothing to score.[/yellow]"
         )
         return
 
@@ -294,7 +294,7 @@ def ingest_crypto(
 ) -> None:
     """Download crypto OHLCV history via CCXT and persist to the configured store.
 
-    Crypto bars share the same `prices` table as equities — the symbol is
+    Crypto bars share the same `prices` table as equities - the symbol is
     stored as ``BTC-USD`` regardless of which stablecoin the exchange quotes
     in, so `sentinel features build BTC-USD` and the rest of the pipeline
     work identically for crypto and stocks.
@@ -631,7 +631,7 @@ def regimes(
     Answers the question "when does this strategy actually work?" by
     computing strategy-vs-benchmark metrics within three volatility buckets
     (rolling-std terciles) and a bull/bear trend classifier (fast vs slow
-    SMA crossover). No retraining — this is a post-hoc slice of the same
+    SMA crossover). No retraining - this is a post-hoc slice of the same
     OOS backtest output.
     """
     from sentinel.backtest.engine import backtest as run_backtest
@@ -787,7 +787,7 @@ def predict(
 
 
 # ---------------------------------------------------------------------------
-# Explain — feature importance
+# Explain - feature importance
 # ---------------------------------------------------------------------------
 
 
@@ -868,7 +868,7 @@ def explain(
 
 
 # ---------------------------------------------------------------------------
-# Demo — end-to-end convenience wrapper
+# Demo - end-to-end convenience wrapper
 # ---------------------------------------------------------------------------
 
 
@@ -881,12 +881,12 @@ def demo(
 
     Note: these sub-commands are Typer-decorated. When we call them as plain
     Python functions (not via the CLI dispatcher), every ``typer.Option(...)``
-    default would remain an unresolved ``OptionInfo`` sentinel — which then
+    default would remain an unresolved ``OptionInfo`` sentinel - which then
     blows up downstream (e.g. MLflow trying to ``urlparse`` it). So we pass
     *every* option-defaulted parameter explicitly here, mirroring the CLI
     defaults.
     """
-    console.rule(f"[bold]Sentinel demo — {symbol}[/bold]")
+    console.rule(f"[bold]Sentinel demo - {symbol}[/bold]")
     ingest_prices(symbol=symbol, start=None, end=None, interval=None)
     features_build(symbol=symbol, with_sentiment=False)
     train(
@@ -942,7 +942,7 @@ def schedule_run(
     if not jobs:
         console.print(
             "[yellow]No scheduler.jobs configured.[/yellow] "
-            "Add jobs to your YAML config — see README."
+            "Add jobs to your YAML config - see README."
         )
         raise typer.Exit(code=0)
 
@@ -961,7 +961,7 @@ def schedule_run(
             console.print(
                 f"[{colour}]{r.status}[/{colour}] [cyan]{r.job_name}[/cyan] "
                 f"in {r.duration_seconds:.2f}s, rows={r.rows_written}"
-                + (f" — {r.error}" if r.error else "")
+                + (f" - {r.error}" if r.error else "")
             )
         return
 
@@ -1005,7 +1005,7 @@ def schedule_status() -> None:
     for spec in jobs:
         last = store.last_run_for(spec.name)
         next_due = sched.next_due_at(spec)
-        last_str = last.isoformat(timespec="seconds") if last else "—"
+        last_str = last.isoformat(timespec="seconds") if last else "-"
         if not spec.enabled:
             next_str = "disabled"
         elif next_due is None:

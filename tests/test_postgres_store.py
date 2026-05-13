@@ -17,7 +17,7 @@ import pandas as pd
 import pytest
 
 # ---------------------------------------------------------------------------
-# Fake psycopg connection — records SQL + returns canned fetchall responses
+# Fake psycopg connection - records SQL + returns canned fetchall responses
 # ---------------------------------------------------------------------------
 
 
@@ -280,7 +280,7 @@ def test_read_prices_empty_returns_empty_frame():
 
 
 # ---------------------------------------------------------------------------
-# Features — dynamic schema
+# Features - dynamic schema
 # ---------------------------------------------------------------------------
 
 
@@ -365,7 +365,7 @@ def test_write_features_adds_new_columns_on_subsequent_write():
     alters = _find(conn.statements, r"ALTER TABLE features ADD COLUMN")
     altered_cols = [re.search(r'ADD COLUMN "(\w+)"', s).group(1) for s, _ in alters]
     assert set(altered_cols) == {"sma_5", "target_direction"}
-    # ret_1 was pre-existing — no ALTER for it.
+    # ret_1 was pre-existing - no ALTER for it.
     assert "ret_1" not in altered_cols
 
     # And no CREATE TABLE this time.
@@ -633,7 +633,7 @@ def test_factory_rejects_unknown_backend():
 
 
 def test_factory_respects_env_var(monkeypatch, tmp_path):
-    """Round-trip via env vars — ensures the config surface is wired end-to-end."""
+    """Round-trip via env vars - ensures the config surface is wired end-to-end."""
     from sentinel.config import load_secrets
     from sentinel.storage import get_store
 

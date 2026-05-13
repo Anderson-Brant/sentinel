@@ -226,7 +226,7 @@ def test_tweets_round_trip_preserves_engagement_fields(tmp_path):
     assert row["like_count"] == 42
     assert row["retweet_count"] == 7
     assert row["reply_count"] == 3
-    # Sentiment hasn't been scored yet — it should be NULL.
+    # Sentiment hasn't been scored yet - it should be NULL.
     assert pd.isna(row["sentiment_compound"])
 
 
@@ -249,7 +249,7 @@ def test_update_tweet_sentiment_backfills_scores(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Sentiment rollups — reddit-only, twitter-only, and both
+# Sentiment rollups - reddit-only, twitter-only, and both
 # ---------------------------------------------------------------------------
 
 

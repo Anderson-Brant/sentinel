@@ -1,4 +1,4 @@
-"""Reddit ingestion orchestration tests (uses a fake fetcher — no network)."""
+"""Reddit ingestion orchestration tests (uses a fake fetcher - no network)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from sentinel.storage.duckdb_store import DuckDBStore
 
 
 class _FakeFetcher:
-    """Injectable fetcher that returns a fixed list of posts — no praw involved."""
+    """Injectable fetcher that returns a fixed list of posts - no praw involved."""
 
     def __init__(self, posts):
         self.posts = posts
@@ -88,7 +88,7 @@ def test_reddit_posts_roundtrip_with_upsert(tmp_path):
     )
     assert store.write_reddit_posts(posts_df) == 2
 
-    # Rewrite p1 with a higher score — row should be *updated*, not duplicated.
+    # Rewrite p1 with a higher score - row should be *updated*, not duplicated.
     updated = pd.DataFrame([_post("p1", "v2", score=999).to_dict()])
     store.write_reddit_posts(updated)
 

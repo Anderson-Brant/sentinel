@@ -8,10 +8,10 @@ A long-biased model can post a great Sharpe simply because the test window
 included a long bull run. Slicing performance by regime forces us to be
 honest:
 
-    - **Volatility regime** — bins each bar into low / mid / high realized
+    - **Volatility regime** - bins each bar into low / mid / high realized
       vol (rolling std of asset returns), classified by quantile across the
       full window.
-    - **Trend regime** — bull when a fast SMA is above a slow SMA on the
+    - **Trend regime** - bull when a fast SMA is above a slow SMA on the
       asset itself, bear otherwise.
 
 For each regime, we report strategy *and* benchmark metrics on the
@@ -58,7 +58,7 @@ def detect_vol_regimes(
 ) -> pd.Series:
     """Classify each bar into a vol regime by quantile of rolling std.
 
-    The first ``window - 1`` bars are NaN (insufficient history) — slicing
+    The first ``window - 1`` bars are NaN (insufficient history) - slicing
     skips them automatically. Quantile cuts are computed on the *full* series
     of rolling-std values, so the bucket boundaries are calibrated to the
     test window. (Using only the warm-up period would let us claim "no
@@ -178,7 +178,7 @@ def slice_by_regime(
     """Compute per-regime metrics from the backtest output.
 
     All inputs must share an index. Bars where ``regime`` is NaN (warm-up)
-    are excluded from the totals — the ``fraction_of_time`` denominator is
+    are excluded from the totals - the ``fraction_of_time`` denominator is
     the number of *valid* regime bars, not the full series length, so the
     fractions across regimes always sum to 1.0.
     """
@@ -255,7 +255,7 @@ def analyze_regimes(
     is degenerate (no OOS bars).
     """
     if backtest_report.strategy_returns.empty:
-        log.warning("Backtest has no returns — skipping regime analysis")
+        log.warning("Backtest has no returns - skipping regime analysis")
         return []
 
     asset_returns = prices["close"].pct_change().fillna(0.0)

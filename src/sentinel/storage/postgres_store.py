@@ -7,7 +7,7 @@ provides a ``SENTINEL_POSTGRES_DSN``.
 
 Design choices
 --------------
-* **Lazy import.** ``psycopg`` is an optional dependency — Sentinel must
+* **Lazy import.** ``psycopg`` is an optional dependency - Sentinel must
   still import and run on a machine that doesn't have it. The import
   happens inside ``__init__``, with an actionable install hint on
   failure.
@@ -15,7 +15,7 @@ Design choices
   ``CREATE EXTENSION IF NOT EXISTS timescaledb`` and, if that succeeds,
   convert the time-series tables to hypertables with
   ``create_hypertable(..., if_not_exists => TRUE)``. If Timescale isn't
-  installed, we fall back to plain tables — the backend still works,
+  installed, we fall back to plain tables - the backend still works,
   just without the partitioning benefits.
 * **Features table is dynamic.** Feature columns depend on which
   blocks are turned on in the YAML config. On write, we inspect the
@@ -26,7 +26,7 @@ Design choices
   ``DELETE FROM ... WHERE symbol = ?`` followed by ``INSERT``. Reddit
   posts + mentions delete by the incoming primary keys before inserting.
 * **Parameterized SQL.** All user-controlled values go through psycopg's
-  parameter binding — never string-formatted into SQL. The only
+  parameter binding - never string-formatted into SQL. The only
   identifier we format in is the feature column list, and those are
   sanitized against a conservative allow-list (``[A-Za-z0-9_]+``).
 """
@@ -59,7 +59,7 @@ _PSYCOPG_INSTALL_HINT = (
 
 # Pattern for a safe-to-quote identifier. Feature column names are derived
 # programmatically from the technical/sentiment feature modules, so this is
-# defense-in-depth rather than strictly necessary — but it keeps any future
+# defense-in-depth rather than strictly necessary - but it keeps any future
 # user-controlled feature name from turning into SQL injection.
 _SAFE_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
@@ -185,7 +185,7 @@ class PostgresStore:
         enable_timescale : bool, default True
             Attempt to enable the Timescale extension and create hypertables
             on the time-series tables. Soft-fails if Timescale isn't
-            available — we'll log a note and keep going with plain tables.
+            available - we'll log a note and keep going with plain tables.
         connect_factory : callable, optional
             Dependency-injection hook used by tests: if supplied, we call
             ``connect_factory(dsn)`` instead of importing psycopg. Keeps
@@ -612,7 +612,7 @@ class PostgresStore:
         return len(rows)
 
     # ------------------------------------------------------------------
-    # job_runs — durable log for sentinel.scheduling
+    # job_runs - durable log for sentinel.scheduling
     # ------------------------------------------------------------------
 
     def record_job_run(self, run) -> int:
@@ -699,7 +699,7 @@ def _is_null(v: Any) -> bool:
             return True
     except Exception:  # noqa: BLE001
         pass
-    # pd.NA and NaT. pd.NaT is its own NaTType — not a pd.Timestamp — so
+    # pd.NA and NaT. pd.NaT is its own NaTType - not a pd.Timestamp - so
     # the isinstance check alone misses it; add an explicit identity test.
     if v is pd.NA or v is pd.NaT:
         return True

@@ -1,7 +1,7 @@
 """Sentiment scoring + aggregation tests.
 
 These tests use a fake scorer so we don't need the real VADER dependency to
-pass — the goal is to pin down the shape and math of our aggregation, not to
+pass - the goal is to pin down the shape and math of our aggregation, not to
 re-test VADER itself.
 """
 

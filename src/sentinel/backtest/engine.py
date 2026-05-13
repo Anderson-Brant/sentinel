@@ -13,11 +13,11 @@ Design rules (the things that separate an honest backtest from a bad one):
 
 2. **Transaction costs.** A cost of ``|Δposition| * cost_bps / 1e4`` is
    deducted from the strategy return on every bar where the position
-   changes — including the first entry and the final flatten.
+   changes - including the first entry and the final flatten.
 
 3. **Benchmarks matter.** Every report includes buy-and-hold on the same
    asset. If the model doesn't beat buy-and-hold after costs, that is the
-   result — we don't hide it.
+   result - we don't hide it.
 
 4. **Probabilities may be NaN.** Before enough history exists for
    walk-forward training, probabilities are NaN. Those rows are treated as
@@ -95,7 +95,7 @@ class BacktestReport:
 
     # vol-targeting configuration + diagnostics. When vol targeting is OFF
     # (the default), target_vol_annual is None and the scale series is all
-    # 1.0 — positions revert to classic {-1, 0, +1}.
+    # 1.0 - positions revert to classic {-1, 0, +1}.
     target_vol_annual: float | None = None
     vol_lookback: int = 20
     max_leverage: float = 1.0
@@ -233,7 +233,7 @@ def backtest(
     Parameters
     ----------
     prices : DataFrame with a ``close`` column and a DatetimeIndex.
-    probabilities : P(up) series. NaN is allowed — treated as "no signal".
+    probabilities : P(up) series. NaN is allowed - treated as "no signal".
     long_threshold / short_threshold : entry thresholds on P(up).
     cost_bps : round-trip cost in basis points charged per unit of |Δposition|.
                2.0 bps is a reasonable liquid-equity default. Crypto or small-
@@ -244,7 +244,7 @@ def backtest(
         signal is scaled so ``size * realized_vol ≈ target_vol_annual``.
         Warmup bars (before ``vol_lookback`` returns exist) sit flat.
         When ``None`` (the default), positions are the classic
-        fixed-size ``{-1, 0, +1}`` — unchanged behavior.
+        fixed-size ``{-1, 0, +1}`` - unchanged behavior.
     vol_lookback : rolling window for the realized-vol estimate.
     max_leverage : cap on position size. 1.0 never exceeds fully invested;
         higher values allow levering up in low-vol regimes.

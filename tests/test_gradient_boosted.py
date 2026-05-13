@@ -133,7 +133,7 @@ def test_lightgbm_defaults_are_conservative(fake_lightgbm):
     assert kw["learning_rate"] == 0.05
     assert kw["objective"] == "binary"
     assert kw["class_weight"] == "balanced"
-    # LightGBM is leaf-wise — depth defaults to unlimited.
+    # LightGBM is leaf-wise - depth defaults to unlimited.
     assert kw["max_depth"] == -1
     assert kw["verbose"] == -1
 

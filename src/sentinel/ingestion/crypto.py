@@ -1,8 +1,8 @@
 """Crypto OHLCV ingestion via CCXT.
 
 Pulls daily bars from a configurable exchange (Binance by default) and returns
-a DataFrame shaped *exactly* like the yfinance equity adapter — columns
-``symbol, open, high, low, close, adj_close, volume`` indexed by ``date`` —
+a DataFrame shaped *exactly* like the yfinance equity adapter - columns
+``symbol, open, high, low, close, adj_close, volume`` indexed by ``date`` -
 so downstream feature / model / backtest code is asset-class agnostic.
 
 External symbol convention mirrors yfinance (``BTC-USD``, ``ETH-USD``). The
@@ -13,7 +13,7 @@ so there is one canonical key per asset regardless of quote venue.
 The adapter is thin: it fetches, normalizes, and hands the DataFrame back to
 the caller (matching ``sentinel.ingestion.market.ingest_prices``). Persistence
 happens at the call site, which makes the function trivially unit-testable
-with fixture data — no CCXT install required in tests.
+with fixture data - no CCXT install required in tests.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ log = get_logger(__name__)
 # Exchange-side quote currencies that map to raw "USD" for storage.
 _USD_EQUIVALENT_QUOTES = frozenset({"USDT", "USDC", "BUSD", "DAI", "TUSD"})
 
-# Canonical output columns — must match the yfinance adapter so that a single
+# Canonical output columns - must match the yfinance adapter so that a single
 # `prices` table can hold both equity and crypto bars.
 _PRICE_COLUMNS = ["symbol", "open", "high", "low", "close", "adj_close", "volume"]
 
@@ -151,7 +151,7 @@ def ingest_crypto_prices(
         ``date`` (index), ``symbol``, ``open``, ``high``, ``low``, ``close``,
         ``adj_close``, ``volume``
 
-    ``adj_close`` mirrors ``close`` — crypto has no dividend adjustments, but
+    ``adj_close`` mirrors ``close`` - crypto has no dividend adjustments, but
     keeping the column means the feature pipeline stays uniform.
 
     ``symbol`` can be yfinance-style (``BTC-USD``) or CCXT-style
@@ -200,7 +200,7 @@ def ingest_crypto_prices(
         if len(batch) < page_limit:
             break
         last_ts = batch[-1][0]
-        # Defensive: exchange did not advance — stop to avoid infinite loop.
+        # Defensive: exchange did not advance - stop to avoid infinite loop.
         if cursor is not None and last_ts <= cursor:
             break
         cursor = last_ts + 1

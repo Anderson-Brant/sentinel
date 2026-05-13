@@ -10,13 +10,13 @@ The scheduler is deliberately boring. Given a set of ``JobSpec``s and a
 2. Compute the set of jobs whose last run is older than their interval (or
    that have never run).
 3. Execute each due job inside its own try/except. Record a ``JobRun`` row
-   — success, error, or skipped — regardless of outcome.
+   - success, error, or skipped - regardless of outcome.
 4. In daemon mode (``run_forever``), sleep for ``tick_seconds`` and repeat.
 
 The design choices worth calling out:
 
 * **No in-memory state.** Every "what's due?" decision consults the store.
-  That makes the scheduler idempotent across crashes — if the process dies
+  That makes the scheduler idempotent across crashes - if the process dies
   mid-loop, the next startup picks up where it left off based on what's
   actually in ``job_runs``.
 * **Clock + sleeper are injected.** The defaults are
@@ -151,12 +151,12 @@ class Scheduler:
                 error=None,
             )
             log.info(
-                "scheduler: %s ok in %.2fs — %s",
+                "scheduler: %s ok in %.2fs - %s",
                 spec.name,
                 run.duration_seconds,
                 result.get("detail", ""),
             )
-        except Exception as e:  # noqa: BLE001 — isolating per-job failures
+        except Exception as e:  # noqa: BLE001 - isolating per-job failures
             finished = self.clock()
             run = JobRun(
                 job_name=spec.name,
@@ -183,7 +183,7 @@ class Scheduler:
     ) -> int:
         """Daemon loop. Returns the number of ticks executed.
 
-        ``max_ticks`` is a test hook — set it and the loop exits after N ticks
+        ``max_ticks`` is a test hook - set it and the loop exits after N ticks
         without needing a signal. Production callers leave it as ``None``.
         """
         tick = 0

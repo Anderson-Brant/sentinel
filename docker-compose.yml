@@ -1,4 +1,4 @@
-# Sentinel — docker-compose orchestration.
+# Sentinel - docker-compose orchestration.
 #
 # Default (DuckDB, zero-setup):
 #     docker compose up -d sentinel
@@ -17,7 +17,7 @@
 
 services:
   # ---------------------------------------------------------------------------
-  # Sentinel — scheduler daemon by default. Storage backend is picked up from
+  # Sentinel - scheduler daemon by default. Storage backend is picked up from
   # env vars (SENTINEL_STORAGE_BACKEND defaults to "duckdb"). The same image
   # is reused for both DuckDB and Postgres modes.
   # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ services:
     environment:
       SENTINEL_LOG_LEVEL: ${SENTINEL_LOG_LEVEL:-INFO}
       SENTINEL_DB_PATH: /data/sentinel.duckdb
-      # Backend selector — override at the shell to switch modes:
+      # Backend selector - override at the shell to switch modes:
       #   SENTINEL_STORAGE_BACKEND=postgres docker compose --profile postgres up
       SENTINEL_STORAGE_BACKEND: ${SENTINEL_STORAGE_BACKEND:-duckdb}
       SENTINEL_POSTGRES_DSN: ${SENTINEL_POSTGRES_DSN:-postgresql://sentinel:sentinel@postgres:5432/sentinel}
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # Postgres + TimescaleDB — opt-in sidecar. Sentinel's hypertable creation is
+  # Postgres + TimescaleDB - opt-in sidecar. Sentinel's hypertable creation is
   # soft-fallback: if the Timescale extension is missing, the schema drops to
   # plain Postgres tables.
   # ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # MLflow tracking server — opt-in. Sentinel's --track flag logs to whatever
+  # MLflow tracking server - opt-in. Sentinel's --track flag logs to whatever
   # MLFLOW_TRACKING_URI points at; setting it here lets the scheduler daemon
   # use the server instead of local file-based tracking.
   # ---------------------------------------------------------------------------

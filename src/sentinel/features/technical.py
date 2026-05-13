@@ -24,7 +24,7 @@ def returns(prices: pd.DataFrame, windows: list[int]) -> pd.DataFrame:
     close = prices["close"]
     for w in windows:
         out[f"ret_{w}d"] = close.pct_change(w)
-    # Log return 1d — useful for some models.
+    # Log return 1d - useful for some models.
     out["log_ret_1d"] = np.log(close).diff()
     return pd.DataFrame(out, index=prices.index)
 

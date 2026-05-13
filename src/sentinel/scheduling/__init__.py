@@ -1,4 +1,4 @@
-"""Scheduling package — declarative recurring ingestion / feature jobs.
+"""Scheduling package - declarative recurring ingestion / feature jobs.
 
 Public surface::
 

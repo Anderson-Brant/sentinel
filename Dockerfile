@@ -1,19 +1,19 @@
 # syntax=docker/dockerfile:1.6
 #
-# Sentinel — market intelligence & stock prediction platform.
+# Sentinel - market intelligence & stock prediction platform.
 #
 # Multi-stage build:
-#   1. builder — compiles any native wheels (psycopg, lightgbm, xgboost) and
+#   1. builder - compiles any native wheels (psycopg, lightgbm, xgboost) and
 #      installs sentinel plus its most useful extras into a self-contained
 #      venv under /opt/venv.
-#   2. runtime — slim Python image that copies the venv, adds a non-root
+#   2. runtime - slim Python image that copies the venv, adds a non-root
 #      user, mounts /data as a volume, and runs the scheduler daemon by
 #      default.
 #
 # Build:
 #     docker build -t sentinel:latest .
 #
-# Run (DuckDB, default — persistent volume):
+# Run (DuckDB, default - persistent volume):
 #     docker run --rm -v sentinel-data:/data sentinel:latest demo SPY
 #
 # Run (Postgres/Timescale via docker-compose):
@@ -26,7 +26,7 @@ ARG PYTHON_VERSION=3.11
 
 
 # ---------------------------------------------------------------------------
-# Stage 1 — builder
+# Stage 1 - builder
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim-bookworm AS builder
 
@@ -47,7 +47,7 @@ RUN apt-get update \
 
 WORKDIR /build
 
-# Copy only what's needed to install the package — maximizes layer caching
+# Copy only what's needed to install the package - maximizes layer caching
 # so that code changes in src/ don't invalidate dep resolution.
 COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
@@ -64,7 +64,7 @@ RUN pip install --upgrade pip \
 
 
 # ---------------------------------------------------------------------------
-# Stage 2 — runtime
+# Stage 2 - runtime
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 
@@ -108,7 +108,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 ENTRYPOINT ["/usr/bin/tini", "--", "sentinel"]
 CMD ["schedule", "run", "--forever"]
 
-# OCI labels — appear in `docker inspect`, used by registries for discovery.
+# OCI labels - appear in `docker inspect`, used by registries for discovery.
 LABEL org.opencontainers.image.title="sentinel" \
       org.opencontainers.image.description="Market intelligence & stock prediction platform" \
       org.opencontainers.image.source="https://github.com/Anderson-Brant/sentinel" \

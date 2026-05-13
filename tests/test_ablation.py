@@ -6,7 +6,7 @@ and verify that:
   - each variant only sees its own feature columns (no leakage)
   - uplift helpers compute the right sign
 
-We don't need real predictive signal here — only that the plumbing is sound.
+We don't need real predictive signal here - only that the plumbing is sound.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ def _synth_features(n: int = 400, seed: int = 0) -> pd.DataFrame:
     sent_mean = rng.normal(0, 0.3, n)
     sent_count = rng.poisson(5, n).astype(float)
 
-    # Target has no signal — just a fair coin so accuracy hovers near 0.5.
+    # Target has no signal - just a fair coin so accuracy hovers near 0.5.
     target = (rng.random(n) > 0.5).astype(int)
 
     return pd.DataFrame(

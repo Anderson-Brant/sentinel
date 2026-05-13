@@ -34,7 +34,7 @@ class TrainResult:
     model_name: str
     symbol: str
     feature_names: list[str]
-    pipeline: Any  # sklearn Pipeline — typed as Any to avoid a hard sklearn import on load
+    pipeline: Any  # sklearn Pipeline - typed as Any to avoid a hard sklearn import on load
     holdout_accuracy: float
     holdout_f1: float
     holdout_roc_auc: float

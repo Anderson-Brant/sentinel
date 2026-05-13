@@ -35,7 +35,7 @@ def repo_root() -> Path:
 
 
 # ---------------------------------------------------------------------------
-# Secrets / runtime settings — from env / .env
+# Secrets / runtime settings - from env / .env
 # ---------------------------------------------------------------------------
 
 
@@ -64,7 +64,7 @@ class Secrets(BaseSettings):
 
 
 # ---------------------------------------------------------------------------
-# YAML config — declarative knobs for features/models
+# YAML config - declarative knobs for features/models
 # ---------------------------------------------------------------------------
 
 
@@ -136,13 +136,13 @@ class ScheduledJobConfig(BaseModel):
 
     name: str
     kind: str
-    interval: str | int | float  # "15m", "1h", bare seconds — parsed at load
+    interval: str | int | float  # "15m", "1h", bare seconds - parsed at load
     params: dict[str, Any] = Field(default_factory=dict)
     enabled: bool = True
 
 
 class SchedulerConfig(BaseModel):
-    """``scheduler:`` section. Empty by default — the section is optional."""
+    """``scheduler:`` section. Empty by default - the section is optional."""
 
     jobs: list[ScheduledJobConfig] = Field(default_factory=list)
     tick_seconds: int = 30

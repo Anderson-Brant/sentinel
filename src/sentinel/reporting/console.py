@@ -19,15 +19,15 @@ console = Console()
 
 
 def _fmt(x: float) -> str:
-    return "—" if x is None or (isinstance(x, float) and math.isnan(x)) else f"{x:.3f}"
+    return "-" if x is None or (isinstance(x, float) and math.isnan(x)) else f"{x:.3f}"
 
 
 def _fmt_pct(x: float) -> str:
-    return "—" if x is None or (isinstance(x, float) and math.isnan(x)) else f"{x * 100:+.2f}%"
+    return "-" if x is None or (isinstance(x, float) and math.isnan(x)) else f"{x * 100:+.2f}%"
 
 
 def render_evaluation(symbol: str, model: str, report: WalkForwardReport) -> None:
-    console.rule(f"[bold]{symbol} — {model} walk-forward evaluation[/bold]")
+    console.rule(f"[bold]{symbol}: {model} walk-forward evaluation[/bold]")
 
     table = Table(show_lines=False)
     table.add_column("Fold", justify="right", style="cyan")
@@ -78,7 +78,7 @@ def render_evaluation(symbol: str, model: str, report: WalkForwardReport) -> Non
 
 def render_backtest(report: BacktestReport, *, show_trades: int = 5) -> None:
     """Render a BacktestReport: summary comparison table + optional trade list."""
-    header = f"[bold]{report.symbol} — backtest[/bold]  "
+    header = f"[bold]{report.symbol}: backtest[/bold]  "
     header += f"(long>{report.long_threshold:.2f}"
     if report.allow_short:
         header += f", short<{report.short_threshold:.2f}"
@@ -123,16 +123,16 @@ def render_backtest(report: BacktestReport, *, show_trades: int = 5) -> None:
 
     # Strategy-only metrics.
     table.add_section()
-    table.add_row("Annualized vol", _fmt_pct(report.annualized_vol), "—", "—")
-    table.add_row("Exposure", f"{report.exposure * 100:.1f}%", "100.0%", "—")
-    table.add_row("Turnover / bar", f"{report.turnover:.4f}", "—", "—")
-    table.add_row("# trades", str(report.n_trades), "—", "—")
+    table.add_row("Annualized vol", _fmt_pct(report.annualized_vol), "-", "-")
+    table.add_row("Exposure", f"{report.exposure * 100:.1f}%", "100.0%", "-")
+    table.add_row("Turnover / bar", f"{report.turnover:.4f}", "-", "-")
+    table.add_row("# trades", str(report.n_trades), "-", "-")
     win_rate_str = (
         f"{report.win_rate * 100:.1f}%"
         if report.n_trades and not math.isnan(report.win_rate)
-        else "—"
+        else "-"
     )
-    table.add_row("Win rate", win_rate_str, "—", "—")
+    table.add_row("Win rate", win_rate_str, "-", "-")
 
     console.print(table)
 
@@ -186,7 +186,7 @@ def render_backtest(report: BacktestReport, *, show_trades: int = 5) -> None:
 def render_ablation(report: AblationReport) -> None:
     """Render an ablation comparison: side-by-side variants + verdict on sentiment uplift."""
     console.rule(
-        f"[bold]{report.symbol} — {report.model_name} ablation[/bold]  "
+        f"[bold]{report.symbol}: {report.model_name} ablation[/bold]  "
         "[dim](technical / sentiment / hybrid)[/dim]"
     )
 
@@ -216,7 +216,7 @@ def render_ablation(report: AblationReport) -> None:
         if has_backtest:
             bt = r.backtest_report
             if bt is None:
-                row += ["—", "—", "—"]
+                row += ["-", "-", "-"]
             else:
                 row += [_fmt_pct(bt.total_return), _fmt(bt.sharpe), _fmt_pct(bt.max_drawdown)]
         table.add_row(*row)
@@ -230,26 +230,26 @@ def render_ablation(report: AblationReport) -> None:
     if acc_uplift is not None:
         color = "green" if acc_uplift > 0 else ("yellow" if acc_uplift == 0 else "red")
         lines.append(
-            f"Accuracy uplift (hybrid − technical): "
+            f"Accuracy uplift (hybrid vs technical): "
             f"[{color}]{acc_uplift:+.3f}[/{color}]"
         )
     if sharpe_uplift is not None:
         color = "green" if sharpe_uplift > 0 else ("yellow" if sharpe_uplift == 0 else "red")
         lines.append(
-            f"Sharpe uplift (hybrid − technical): "
+            f"Sharpe uplift (hybrid vs technical): "
             f"[{color}]{sharpe_uplift:+.2f}[/{color}]"
         )
 
     if acc_uplift is not None and acc_uplift > 0.005:
-        lines.append("[green]→ Sentiment appears to add out-of-sample value.[/green]")
+        lines.append("[green]Sentiment appears to add out-of-sample value.[/green]")
     elif acc_uplift is not None and acc_uplift < -0.005:
         lines.append(
-            "[red]→ Sentiment hurts out-of-sample performance. "
+            "[red]Sentiment hurts out-of-sample performance. "
             "Likely noise or coverage gap.[/red]"
         )
     elif acc_uplift is not None:
         lines.append(
-            "[yellow]→ Sentiment has no meaningful impact at this data scale.[/yellow]"
+            "[yellow]Sentiment has no meaningful impact at this data scale.[/yellow]"
         )
 
     if lines:
@@ -260,7 +260,7 @@ def render_regime_analysis(reports: list[RegimeReport]) -> None:
     """Render one table per regime axis (e.g. volatility, trend).
 
     Each row compares strategy vs benchmark on the within-regime subset of
-    returns — this is the honest answer to "when does your strategy work?"
+    returns. This is the honest answer to "when does your strategy work?"
     """
     if not reports:
         console.print("[yellow]No regime reports to render.[/yellow]")
@@ -269,14 +269,14 @@ def render_regime_analysis(reports: list[RegimeReport]) -> None:
     for r in reports:
         axis_title = r.axis.capitalize()
         console.rule(
-            f"[bold]{r.symbol} — regime analysis: {axis_title}[/bold]  "
+            f"[bold]{r.symbol}: regime analysis: {axis_title}[/bold]  "
             f"[dim]{r.description}[/dim]"
         )
 
         if not r.metrics:
             console.print(
-                f"[yellow]No valid bars for {axis_title} — "
-                "is the window longer than the backtest?[/yellow]"
+                f"[yellow]No valid bars for {axis_title}. "
+                "Is the window longer than the backtest?[/yellow]"
             )
             continue
 
@@ -350,14 +350,14 @@ def render_importance(
 ) -> None:
     """Render a top-N feature importance table with a visual magnitude bar.
 
-    The bar is scaled so the top feature fills it — the rest show their
+    The bar is scaled so the top feature fills it. The rest show their
     *relative* importance, which is what actually matters for reading
     the table at a glance.
     """
     method_label = {"permutation": "permutation importance", "shap": "SHAP importance"}.get(
         result.method, result.method
     )
-    header = f"[bold]{symbol} — {model} {method_label}[/bold]"
+    header = f"[bold]{symbol}: {model} {method_label}[/bold]"
     if result.method == "permutation" and result.scoring:
         header += f"  [dim](scoring={result.scoring})[/dim]"
     console.rule(header)
@@ -402,7 +402,7 @@ def render_importance(
 
     console.print(table)
 
-    # Summary note: if the top two features dominate, flag it — that's
+    # Summary note: if the top two features dominate, flag it, since that's
     # often a sign of a brittle model.
     total = float(rows["mean_importance"].clip(lower=0).sum())
     if total > 0 and len(rows) >= 2:
@@ -412,7 +412,7 @@ def render_importance(
             console.print(
                 Panel(
                     f"Top-2 features explain [bold]{concentration * 100:.0f}%[/bold] of "
-                    f"the importance in this window — the model is concentrated. "
+                    f"the importance in this window. The model is concentrated. "
                     f"A feature pipeline change here would likely break it.",
                     title="Concentration note",
                     border_style="yellow",

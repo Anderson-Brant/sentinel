@@ -1,16 +1,14 @@
 # Methodology
 
 This document describes the experimental design Sentinel is **intended
-to execute** — the universe, time ranges, evaluation protocol, and
+to execute**: the universe, time ranges, evaluation protocol, and
 decision rules we use to call something a "real" finding vs. noise.
 
-The platform is feature-complete against this design. A study writeup
-— actual findings from running the protocol below — is a separate
+The platform is feature-complete against this design. A study writeup,
+which is actual findings from running the protocol below, is a separate
 artifact and is not included in this v0.1 release. Treating the platform
 and the study as different deliverables keeps the engineering claims
 honest: *this ships, this works, this is what it's for*.
-
----
 
 ## Problem framing
 
@@ -25,7 +23,7 @@ simulated long/short strategy in the backtest.
 
 1. Do sentiment features (Reddit, X/Twitter, finBERT) add **durable
    out-of-sample edge** over a technical-only feature stack?
-2. If they do, **where** — which regimes, which symbols, which
+2. If they do, **where**: which regimes, which symbols, which
    horizons? Edge that only appears in one vol tercile is a different
    claim than edge that appears everywhere.
 3. Can gradient-boosted models extract signal that the logistic
@@ -34,11 +32,9 @@ simulated long/short strategy in the backtest.
 4. Does vol-targeted sizing improve Sharpe net of transaction costs,
    without relying on lookahead for the vol estimate?
 
-Everything in the platform — ablation harness, regime slicer, walk-forward
-evaluator, SHAP/permutation importance, backtest with costs — exists to
+Everything in the platform (ablation harness, regime slicer, walk-forward
+evaluator, SHAP/permutation importance, backtest with costs) exists to
 answer *one of these four questions without lying*.
-
----
 
 ## Universe
 
@@ -64,9 +60,7 @@ international equities, microcaps. These bring enough structural
 differences (listing effects, expiry, overnight gaps) that the
 walk-forward + vol-sizing machinery would need extension.
 
----
-
-## Time range & splits
+## Time range and splits
 
 **Training span:** 2015-01-01 through the most recent complete trading
 day. For symbols with shorter histories (e.g., `PLTR`), use the full
@@ -87,8 +81,6 @@ Every metric reported is the mean ± std across folds. Single-fold
 numbers exist in intermediate artifacts but are **never** what gets
 quoted as a result.
 
----
-
 ## Features
 
 Features are organized into **ablation-friendly blocks** so that we can
@@ -106,30 +98,26 @@ statistics are computed with `closed="left"`; the same-day bar never
 contaminates its own prediction. This is enforced at the feature layer,
 not left to the modeler.
 
----
-
-## Models & baselines
+## Models and baselines
 
 **Models under evaluation:**
 
-- `logistic` — regularized logistic regression (L2, C tuned per fold)
-- `random_forest` — sklearn RF, shallow (`max_depth=6`), many trees
-- `xgboost` — gradient-boosted trees, early-stopping on a walk-forward
+- `logistic`: regularized logistic regression (L2, C tuned per fold)
+- `random_forest`: sklearn RF, shallow (`max_depth=6`), many trees
+- `xgboost`: gradient-boosted trees, early-stopping on a walk-forward
   validation slice
-- `lightgbm` — same role as xgboost, different bias profile
+- `lightgbm`: same role as xgboost, different bias profile
 
 **Baselines we must beat:**
 
-- `predict_majority` — always predict the training-set majority class
-- `predict_prev_sign` — predict the sign of the prior-day return
-- `buy_and_hold` — for the backtest comparison
+- `predict_majority`: always predict the training-set majority class
+- `predict_prev_sign`: predict the sign of the prior-day return
+- `buy_and_hold`: for the backtest comparison
 
 A model that can't beat *both* baselines on at least one of
 {accuracy, log-loss, Sharpe} across the walk-forward fold means is
 reported as **no edge detected**, not as a modeling failure to hide.
 This is the most important rule in the entire project.
-
----
 
 ## What counts as a finding
 
@@ -146,24 +134,20 @@ A result is reported as a **finding** only if it clears all four:
 4. **The backtest survives realistic costs** (`--cost-bps 2.0` on
    equities, `--cost-bps 10.0` on crypto) and vol targeting.
 
-Anything that clears 1–3 but fails 4 is reported as "signal exists,
+Anything that clears 1 to 3 but fails 4 is reported as "signal exists,
 strategy doesn't." That's a useful result. Anything that fails 1 is
 noise and is reported as such.
-
----
 
 ## What we explicitly will not claim
 
 - That Sentinel predicts markets, in any general sense.
 - That any single-symbol backtest result generalizes.
-- That sentiment adds edge uniformly — if it helps, we expect it to
+- That sentiment adds edge uniformly. If it helps, we expect it to
   help in specific regimes (attention-driven names, high-vol bears)
   and not in others, and we will report it that way.
 - Anything based on a single train/test split.
 - Any t-statistic from a backtest without a multiple-testing correction
   across the grid of symbols × models × feature sets.
-
----
 
 ## Failure modes we actively look for
 
@@ -176,7 +160,7 @@ noise and is reported as such.
   sanity check that vol-targeted Sharpe ≤ oracle-Sharpe + ε.
 - **Surviving-company bias.** The universe is a fixed list of current
   tickers; we *will* have survivorship bias on equities. For v0.1 this
-  is flagged in any writeup; v0.2 would add delisted-ticker support.
+  is flagged in any writeup. v0.2 would add delisted-ticker support.
 - **Sentiment sample collapse.** Reddit/Twitter ingestion can return
   very few posts for low-attention symbols on quiet days. Features
   computed on fewer than 3 posts/day are masked to NaN before
@@ -185,12 +169,10 @@ noise and is reported as such.
   refit daily. For the study we refit quarterly (step=56 days) and
   note deviations from this cadence.
 
----
-
 ## What a v0.1 study writeup would include
 
-When this platform is used to produce actual findings — a separate,
-future artifact — the minimum contents are:
+When this platform is used to produce actual findings (a separate,
+future artifact), the minimum contents are:
 
 - Universe, time range, and total bar count per symbol
 - Walk-forward fold geometry (`window`, `step`, `min_train`, `folds`)
@@ -201,7 +183,7 @@ future artifact — the minimum contents are:
 - Backtest equity curves for the best technical-only and hybrid cells
   per symbol, with costs and vol targeting applied
 - An honest "did it work" verdict by the rules in *What counts as a
-  finding* above — **per symbol, not pooled**
+  finding* above, **per symbol, not pooled**
 
 The shape of each of those outputs is already captured in
 [`sample-outputs.md`](./sample-outputs.md). The platform produces them;

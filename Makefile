@@ -1,4 +1,4 @@
-# Sentinel — developer shortcuts.
+# Sentinel - developer shortcuts.
 #
 # All targets are .PHONY; nothing here depends on file timestamps.
 # Run `make` or `make help` to see what's available.

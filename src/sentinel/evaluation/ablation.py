@@ -4,7 +4,7 @@ Motivation
 ----------
 The README's top design principle is honest evaluation. Adding a sentiment
 block to a feature table almost *always* makes in-sample accuracy look
-better — more parameters, more ways to fit. The real question is whether
+better - more parameters, more ways to fit. The real question is whether
 sentiment carries predictive signal *out-of-sample*, so we compare three
 carefully matched variants on the same walk-forward splits:
 
@@ -14,7 +14,7 @@ carefully matched variants on the same walk-forward splits:
     hybrid    : technical + sentiment
 
 The three variants share the exact same index, target, walk-forward splits,
-and random state — the only thing that changes is which feature columns are
+and random state - the only thing that changes is which feature columns are
 visible to the model. That keeps "does sentiment add value" a clean test.
 
 Inputs
@@ -22,7 +22,7 @@ Inputs
 ``run_ablation`` takes a *hybrid* feature table (the output of
 :func:`sentinel.features.pipeline.build_feature_table` called with
 ``sentiment=...``) plus the list of sentiment-column names. It slices the
-same table three ways — no refitting pipelines, no risk of the three
+same table three ways - no refitting pipelines, no risk of the three
 variants diverging on different data.
 
 Optionally a ``prices`` frame can be passed, in which case each variant also
@@ -84,7 +84,7 @@ class AblationVariantResult:
 
 @dataclass
 class AblationReport:
-    """Top-level ablation result — ordered list of per-variant rows."""
+    """Top-level ablation result - ordered list of per-variant rows."""
 
     symbol: str
     model_name: str
@@ -130,7 +130,7 @@ def _subset_features(
     """Return a copy of ``features`` containing only ``keep`` columns + meta/target.
 
     The ``feature_columns`` helper used by walk-forward derives features from
-    whatever-is-not-meta, so we physically drop the other columns — it's
+    whatever-is-not-meta, so we physically drop the other columns - it's
     simpler than teaching the downstream code to honor a whitelist.
     """
     keep_set = set(keep)
@@ -156,7 +156,7 @@ def run_ablation(
 
     Parameters
     ----------
-    features : Hybrid feature table — must contain ``target_direction`` and
+    features : Hybrid feature table - must contain ``target_direction`` and
                the technical + sentiment blocks. Rows with NaN already dropped.
     symbol, model_name, cfg : forwarded to ``walk_forward_evaluate``.
     sentiment_columns : Column names that belong to the sentiment block. Used

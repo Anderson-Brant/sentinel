@@ -1,6 +1,6 @@
 """Market data ingestion via yfinance.
 
-Keeps the adapter thin — the caller is responsible for persistence. This makes
+Keeps the adapter thin - the caller is responsible for persistence. This makes
 the function easy to unit-test with fixture data.
 """
 

@@ -1,6 +1,6 @@
 """Experiment tracking abstraction.
 
-Design: a tiny ``Tracker`` protocol plus two implementations — ``NullTracker``
+Design: a tiny ``Tracker`` protocol plus two implementations - ``NullTracker``
 (no-ops) and ``MLflowTracker`` (lazy-imports mlflow). Callers hit
 :func:`get_tracker` once, receive a tracker that conforms to the protocol,
 and call ``log_params / log_metrics / log_artifact`` without ever branching
@@ -86,7 +86,7 @@ class MLflowTracker:
     On init, optionally sets the tracking URI (default: mlflow's own default,
     typically ``./mlruns``) and creates or switches to the named experiment.
 
-    :meth:`log_metrics` silently drops NaN/inf/None values — MLflow rejects
+    :meth:`log_metrics` silently drops NaN/inf/None values - MLflow rejects
     them, and swallowing one bad metric shouldn't take down a whole run.
     :meth:`log_params` coerces ``None`` to the string ``"None"`` for the same
     reason.

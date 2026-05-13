@@ -84,7 +84,7 @@ scheduler:
   #    params:
   #      whitelist: [SPY, AAPL, MSFT, NVDA, TSLA]
   #      limit: 300
-  #  - name: crypto-daily                      # CCXT — no API key needed for public data
+  #  - name: crypto-daily                      # CCXT - no API key needed for public data
   #    kind: ingest-crypto
   #    interval: 1d
   #    params:

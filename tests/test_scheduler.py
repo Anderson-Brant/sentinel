@@ -1,6 +1,6 @@
 """Tests for the scheduler core, job registry, and job_runs storage.
 
-No network, no real ingestion — we replace the job functions and let the
+No network, no real ingestion - we replace the job functions and let the
 scheduler drive the store through an injectable clock.
 """
 
@@ -360,5 +360,5 @@ def test_record_skipped_persists(tmp_path):
     hist = store.read_job_runs(job_name="x", limit=5)
     assert len(hist) == 1
     assert hist.iloc[0]["status"] == STATUS_SKIPPED
-    # Skipped runs do NOT count as "last successful" — last_run_for stays None.
+    # Skipped runs do NOT count as "last successful" - last_run_for stays None.
     assert store.last_run_for("x") is None

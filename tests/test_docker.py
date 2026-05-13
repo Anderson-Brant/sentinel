@@ -2,7 +2,7 @@
 
 These assert invariants we care about (multi-stage build, non-root runtime,
 HEALTHCHECK present, profile-gated sidecars, shared volume mounts, etc.)
-without requiring a docker daemon — the CI ``docker`` job exercises the
+without requiring a docker daemon - the CI ``docker`` job exercises the
 actual build.
 """
 
@@ -154,10 +154,10 @@ def test_compose_default_service_builds_from_dockerfile(compose):
 
 
 def test_compose_sentinel_service_has_no_profiles(compose):
-    # The sentinel service must run on plain `docker compose up` — no profile.
+    # The sentinel service must run on plain `docker compose up` - no profile.
     sentinel = compose["services"]["sentinel"]
     assert not sentinel.get("profiles"), (
-        "sentinel must be active in the default profile — move sidecars to named profiles instead"
+        "sentinel must be active in the default profile - move sidecars to named profiles instead"
     )
 
 

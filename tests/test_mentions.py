@@ -19,7 +19,7 @@ def test_cashtag_with_suffix():
 
 
 def test_no_whitelist_ignores_bare_uppercase():
-    """Without a whitelist, bare uppercase words are *not* matched — too noisy."""
+    """Without a whitelist, bare uppercase words are *not* matched - too noisy."""
     text = "AAPL earnings tomorrow, the CEO said YOLO"
     assert extract_tickers(text) == set()
 
