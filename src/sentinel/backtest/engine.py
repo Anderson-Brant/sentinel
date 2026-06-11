@@ -22,6 +22,13 @@ Design rules (the things that separate an honest backtest from a bad one):
 4. **Probabilities may be NaN.** Before enough history exists for
    walk-forward training, probabilities are NaN. Those rows are treated as
    "no signal → position 0". No trades, no costs, no P&L.
+
+5. **Metrics cover the out-of-sample window.** Summary statistics (Sharpe,
+   vol, total/annualized return, drawdown, exposure, turnover) are computed
+   from the first non-NaN probability onward - for the benchmark too, so
+   the buy-and-hold comparison covers the same bars. Averaging in the flat
+   warmup would deflate vol and flatter the Sharpe. The full equity curves
+   are still reported for plotting.
 """
 
 from __future__ import annotations
@@ -71,7 +78,9 @@ class BacktestReport:
     equity_curve: pd.Series
     benchmark_equity: pd.Series
 
-    # summary metrics
+    # summary metrics. Computed over the OOS window (first non-NaN
+    # probability onward); falls back to the full range when no
+    # probabilities exist. See design rule 5 in the module docstring.
     total_return: float
     benchmark_total_return: float
     annualized_return: float
@@ -235,9 +244,10 @@ def backtest(
     prices : DataFrame with a ``close`` column and a DatetimeIndex.
     probabilities : P(up) series. NaN is allowed - treated as "no signal".
     long_threshold / short_threshold : entry thresholds on P(up).
-    cost_bps : round-trip cost in basis points charged per unit of |Δposition|.
-               2.0 bps is a reasonable liquid-equity default. Crypto or small-
-               caps are meaningfully higher.
+    cost_bps : cost in basis points charged per unit of |Δposition|, i.e.
+               per side - a full round trip (enter + exit) pays 2x this.
+               2.0 bps/side is a reasonable liquid-equity default. Crypto
+               or small-caps are meaningfully higher.
     allow_short : if False, the strategy is long-flat only.
     periods_per_year : 252 for daily equities, 365 for crypto daily.
     target_vol_annual : if set (e.g. 0.10 for 10% annualized), each unit
@@ -309,27 +319,39 @@ def backtest(
     equity = (1.0 + strat_net).cumprod()
     bench_equity = (1.0 + asset_return).cumprod()
 
-    # --- 7. Metrics.
+    # --- 7. Metrics - over the OOS window only (see design rule 5).
+    # The warmup before the first non-NaN probability is all zeros by
+    # construction; averaging it in deflates vol and flatters the Sharpe,
+    # and pits a part-time strategy against a full-period benchmark. When
+    # there is no OOS window at all, fall back to the full range - there is
+    # nothing to compare, and "flat strategy vs full-period buy-and-hold"
+    # is the least surprising thing to report.
     n = len(strat_net)
     oos_mask = probs_aligned.notna()
     n_oos = int(oos_mask.sum())
+    oos_start = probs_aligned.first_valid_index() if n_oos else px.index[0] if n else None
 
-    mean_ret = float(strat_net.mean())
-    std_ret = float(strat_net.std(ddof=0))
+    strat_w = strat_net.loc[oos_start:] if oos_start is not None else strat_net
+    bench_w = asset_return.loc[oos_start:] if oos_start is not None else asset_return
+    pos_w = held_position.loc[oos_start:] if oos_start is not None else held_position
+    turn_w = turnover_bar.loc[oos_start:] if oos_start is not None else turnover_bar
+
+    mean_ret = float(strat_w.mean())
+    std_ret = float(strat_w.std(ddof=0))
     ann_return, ann_vol, sharpe = _annualized(mean_ret, std_ret, periods_per_year)
 
-    b_mean = float(asset_return.mean())
-    b_std = float(asset_return.std(ddof=0))
+    b_mean = float(bench_w.mean())
+    b_std = float(bench_w.std(ddof=0))
     b_ann_return, _, b_sharpe = _annualized(b_mean, b_std, periods_per_year)
 
-    total_return = float(equity.iloc[-1] - 1.0) if len(equity) else 0.0
-    b_total_return = float(bench_equity.iloc[-1] - 1.0) if len(bench_equity) else 0.0
+    total_return = float((1.0 + strat_w).prod() - 1.0) if len(strat_w) else 0.0
+    b_total_return = float((1.0 + bench_w).prod() - 1.0) if len(bench_w) else 0.0
 
-    max_dd = _max_drawdown(equity)
-    b_max_dd = _max_drawdown(bench_equity)
+    max_dd = _max_drawdown((1.0 + strat_w).cumprod())
+    b_max_dd = _max_drawdown((1.0 + bench_w).cumprod())
 
-    exposure = float((held_position != 0).mean())
-    turnover = float(turnover_bar.mean())
+    exposure = float((pos_w != 0).mean()) if len(pos_w) else 0.0
+    turnover = float(turn_w.mean()) if len(turn_w) else 0.0
 
     trades = _extract_trades(held_position, px, cost_per_turnover)
     n_trades = len(trades)

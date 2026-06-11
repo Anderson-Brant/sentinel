@@ -94,8 +94,6 @@ scheduler:
   #  - name: sentiment-refresh                 # re-scores posts AND tweets
   #    kind: score-sentiment
   #    interval: 2h
-  #    params:
-  #      scorer: vader
   #  - name: rebuild-features
   #    kind: build-features
   #    interval: 1d

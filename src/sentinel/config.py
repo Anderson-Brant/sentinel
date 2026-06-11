@@ -20,9 +20,6 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Load .env at import time so all downstream modules see it.
-load_dotenv()
-
 
 def repo_root() -> Path:
     """Return the repository root (where pyproject.toml lives)."""
@@ -179,6 +176,11 @@ def load_config(path: str | Path | None = None) -> SentinelConfig:
 
 @lru_cache(maxsize=1)
 def load_secrets() -> Secrets:
+    # .env is loaded here rather than at import time - importing a config
+    # module should not mutate the process environment as a side effect.
+    # pydantic-settings also reads .env directly (model_config above), so
+    # this only matters for code that reads os.environ around Secrets.
+    load_dotenv()
     return Secrets()
 
 

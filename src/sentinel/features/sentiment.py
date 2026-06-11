@@ -79,25 +79,27 @@ def _score_rows(
 
     scorer = scorer or _vader_scorer()
 
-    out = []
-    for _, row in df.iterrows():
-        text = " ".join(str(row.get(f) or "") for f in text_fields).strip()
-        scores = scorer.polarity_scores(text) if text else {
-            "compound": 0.0,
-            "pos": 0.0,
-            "neg": 0.0,
-            "neu": 0.0,
+    # Concatenate the text fields column-wise (vectorized), then score row by
+    # row - the scorer call is the only per-row work left. iterrows() here
+    # was the bottleneck on large ingest batches.
+    parts = [
+        df[f].fillna("").astype(str) if f in df.columns else pd.Series("", index=df.index)
+        for f in text_fields
+    ]
+    texts = parts[0].str.cat(parts[1:], sep=" ").str.strip() if parts else pd.Series("", index=df.index)
+
+    _zero = {"compound": 0.0, "pos": 0.0, "neg": 0.0, "neu": 0.0}
+    all_scores = [scorer.polarity_scores(t) if t else _zero for t in texts]
+
+    return pd.DataFrame(
+        {
+            id_col: df[id_col].to_numpy(),
+            "sentiment_compound": [float(s.get("compound", 0.0)) for s in all_scores],
+            "sentiment_pos": [float(s.get("pos", 0.0)) for s in all_scores],
+            "sentiment_neg": [float(s.get("neg", 0.0)) for s in all_scores],
+            "sentiment_neu": [float(s.get("neu", 0.0)) for s in all_scores],
         }
-        out.append(
-            {
-                id_col: row[id_col],
-                "sentiment_compound": float(scores.get("compound", 0.0)),
-                "sentiment_pos": float(scores.get("pos", 0.0)),
-                "sentiment_neg": float(scores.get("neg", 0.0)),
-                "sentiment_neu": float(scores.get("neu", 0.0)),
-            }
-        )
-    return pd.DataFrame(out)
+    )
 
 
 def score_posts(
@@ -175,11 +177,46 @@ SENTIMENT_FEATURE_COLS = REDDIT_SENTIMENT_FEATURE_COLS + TWITTER_SENTIMENT_FEATU
 MENTION_COUNT_COLS = ("reddit_mention_count", "twitter_mention_count")
 
 
+# Posts created at/after this UTC hour count toward the *next* day. 20:00 UTC
+# sits at-or-before the US cash close (4pm ET) year-round, so a post bucketed
+# to day t was always knowable by the close of day t. Slightly conservative in
+# winter (a 20:30 UTC post is pre-close but rolls forward anyway); never leaky.
+CLOSE_CUTOFF_UTC_HOUR = 20
+
+
+def _effective_dates(
+    created_ts: pd.Series,
+    *,
+    index: pd.DatetimeIndex | None,
+) -> pd.Series:
+    """Map each post timestamp to the trading day it can legitimately inform.
+
+    Floor to the UTC day, roll post-cutoff posts to the next day, then - when
+    a trading calendar is supplied - snap each day to the first session at or
+    after it (weekend chatter lands on Monday). Posts beyond the last session
+    get NaT: they can only inform days we don't have bars for.
+    """
+    ts = pd.to_datetime(created_ts, utc=True).dt.tz_localize(None)
+    date = ts.dt.floor("D")
+    date = date.where(ts.dt.hour < CLOSE_CUTOFF_UTC_HOUR, date + pd.Timedelta(days=1))
+
+    if index is None or len(index) == 0:
+        return date
+
+    sessions = index.sort_values()
+    pos = sessions.searchsorted(date, side="left")
+    out = pd.Series(pd.NaT, index=date.index, dtype="datetime64[ns]")
+    in_range = pos < len(sessions)
+    out[in_range] = sessions[pos[in_range]]
+    return out
+
+
 def _daily_rollup(
     posts: pd.DataFrame,
     *,
     prefix: str,
     weight_expr,
+    index: pd.DatetimeIndex | None = None,
 ) -> pd.DataFrame:
     """Collapse (post × date) → one row per date, emitting ``<prefix>_*`` cols.
 
@@ -190,10 +227,13 @@ def _daily_rollup(
         needs to compute per-row engagement weight.
     prefix : column prefix - ``reddit`` or ``twitter``.
     weight_expr : callable(df) → pd.Series of non-negative engagement weights.
+    index : optional trading calendar. When given, posts are bucketed onto it
+        via :func:`_effective_dates` so day-t features only contain posts that
+        were knowable at the close of day t.
     """
     df = posts.copy()
-    df["created_ts"] = pd.to_datetime(df["created_ts"])
-    df["date"] = df["created_ts"].dt.floor("D")
+    df["date"] = _effective_dates(df["created_ts"], index=index)
+    df = df.dropna(subset=["date"])
 
     # Engagement weight. +1 so an all-zero day still produces a finite mean.
     df["_w"] = weight_expr(df).astype(float) + 1.0
@@ -214,10 +254,30 @@ def _daily_rollup(
     )
 
 
-def _add_rolling(daily: pd.DataFrame, *, prefix: str) -> pd.DataFrame:
-    """Attach 5d/20d rolling means + 20d mention z-score to a daily frame."""
+def _add_rolling(
+    daily: pd.DataFrame,
+    *,
+    prefix: str,
+    index: pd.DatetimeIndex | None = None,
+) -> pd.DataFrame:
+    """Attach 5d/20d rolling means + 20d mention z-score to a daily frame.
+
+    Windows run over a contiguous grid - the trading calendar when one is
+    supplied, plain calendar days otherwise - never over post-days alone.
+    Rolling over post-days only would let a "5-day" mean quietly span weeks
+    for a thinly-mentioned symbol. Quiet days count as zero mentions (the
+    z-score should see them); sentiment means stay NaN on no-post days, so
+    the rolling means average over whatever posts the window does contain.
+    """
     mention_col = f"{prefix}_mention_count"
     mean_col = f"{prefix}_sentiment_mean"
+
+    if index is not None:
+        grid = index.sort_values()
+    else:
+        grid = pd.date_range(daily.index.min(), daily.index.max(), freq="D")
+    daily = daily.reindex(grid)
+    daily[mention_col] = daily[mention_col].fillna(0)
 
     daily[f"{prefix}_sentiment_mean_5"] = (
         daily[mean_col].rolling(5, min_periods=1).mean()
@@ -254,21 +314,29 @@ def _twitter_weights(df: pd.DataFrame) -> pd.Series:
     return sum(parts)
 
 
-def _reddit_block(posts: pd.DataFrame) -> pd.DataFrame:
+def _reddit_block(
+    posts: pd.DataFrame, *, index: pd.DatetimeIndex | None = None
+) -> pd.DataFrame:
     """Reddit subset of the combined sentiment block."""
     if posts.empty:
         return pd.DataFrame(columns=list(REDDIT_SENTIMENT_FEATURE_COLS))
-    daily = _daily_rollup(posts, prefix="reddit", weight_expr=_reddit_weights)
-    daily = _add_rolling(daily, prefix="reddit")
+    daily = _daily_rollup(posts, prefix="reddit", weight_expr=_reddit_weights, index=index)
+    if daily.empty:
+        return pd.DataFrame(columns=list(REDDIT_SENTIMENT_FEATURE_COLS))
+    daily = _add_rolling(daily, prefix="reddit", index=index)
     return daily.reindex(columns=list(REDDIT_SENTIMENT_FEATURE_COLS))
 
 
-def _twitter_block(tweets: pd.DataFrame) -> pd.DataFrame:
+def _twitter_block(
+    tweets: pd.DataFrame, *, index: pd.DatetimeIndex | None = None
+) -> pd.DataFrame:
     """Twitter subset of the combined sentiment block."""
     if tweets.empty:
         return pd.DataFrame(columns=list(TWITTER_SENTIMENT_FEATURE_COLS))
-    daily = _daily_rollup(tweets, prefix="twitter", weight_expr=_twitter_weights)
-    daily = _add_rolling(daily, prefix="twitter")
+    daily = _daily_rollup(tweets, prefix="twitter", weight_expr=_twitter_weights, index=index)
+    if daily.empty:
+        return pd.DataFrame(columns=list(TWITTER_SENTIMENT_FEATURE_COLS))
+    daily = _add_rolling(daily, prefix="twitter", index=index)
     return daily.reindex(columns=list(TWITTER_SENTIMENT_FEATURE_COLS))
 
 
@@ -281,9 +349,12 @@ def sentiment_features_for_symbol(
     """Build a per-date sentiment feature block for ``symbol``.
 
     Combines Reddit and Twitter into a single wide frame with all of
-    :data:`SENTIMENT_FEATURE_COLS`. If ``index`` is provided, the frame is
-    reindexed to it (missing days → zero mentions, NaN sentiment) so it
-    joins cleanly onto the technical feature table.
+    :data:`SENTIMENT_FEATURE_COLS`. If ``index`` is provided (the price
+    calendar), posts are bucketed onto it with no lookahead: a post counts
+    toward the first session at-or-after its effective date, where posts
+    created after :data:`CLOSE_CUTOFF_UTC_HOUR` roll to the next day. Days
+    without posts get zero mentions / NaN sentiment, so the block joins
+    cleanly onto the technical feature table.
 
     Either source can be empty - the other still produces its block, with
     the missing source emitting all-zero / NaN columns. This keeps the
@@ -293,8 +364,8 @@ def sentiment_features_for_symbol(
     posts = store.read_reddit_posts_for_symbol(symbol)
     tweets = _read_tweets_for_symbol_compat(store, symbol)
 
-    reddit = _reddit_block(posts)
-    twitter = _twitter_block(tweets)
+    reddit = _reddit_block(posts, index=index)
+    twitter = _twitter_block(tweets, index=index)
 
     # Outer join on date so a day that only has reddit posts gets twitter cols
     # as NaN (and vice versa).
@@ -318,7 +389,9 @@ def sentiment_features_for_symbol(
     if index is not None:
         feats = feats.reindex(index)
         for col in MENTION_COUNT_COLS:
-            feats[col] = feats[col].fillna(0)
+            # astype first: an all-NaN column is object-dtype here, and
+            # fillna on object columns is a deprecated downcast in pandas.
+            feats[col] = feats[col].astype(float).fillna(0.0)
 
     feats.index.name = "date"
     return feats

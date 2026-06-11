@@ -34,9 +34,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from sentinel.backtest.engine import BacktestReport
 
 from sentinel.config import SentinelConfig
 from sentinel.evaluation.walk_forward import (
@@ -61,7 +64,7 @@ class AblationVariantResult:
     n_features: int
     wf_report: WalkForwardReport
     #: filled in when prices were passed; otherwise None
-    backtest_report: object | None = None
+    backtest_report: BacktestReport | None = None
 
     # --- convenience accessors so the renderer stays boring -------------
 

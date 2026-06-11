@@ -317,8 +317,8 @@ def render_regime_analysis(reports: list[RegimeReport]) -> None:
             for label, m in by.items()
         }
         if edges:
-            best_label = max(edges, key=edges.get)
-            worst_label = min(edges, key=edges.get)
+            best_label = max(edges, key=edges.__getitem__)
+            worst_label = min(edges, key=edges.__getitem__)
             if edges[best_label] > 0:
                 note = (
                     f"Largest edge in [green]{best_label}[/green] regime "

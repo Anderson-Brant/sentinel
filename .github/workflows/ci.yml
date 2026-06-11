@@ -13,7 +13,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        # 3.14 is in the matrix because that's what local dev runs on -
+        # the sklearn 1.6 / pandas nullable-dtype breakage only surfaced
+        # locally because CI stopped at 3.12.
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +35,11 @@ jobs:
       - name: Lint
         run: ruff check src tests
 
+      - name: Type check
+        run: mypy src
+
       - name: Test
-        run: pytest -q
+        run: pytest -q --cov=sentinel --cov-report=term
 
   docker:
     name: Build Docker image

@@ -43,8 +43,8 @@ kill_timeout = 30
   processes = ["scheduler"]
 
 # Small VM - the scheduler is I/O-bound (network + DuckDB writes), not
-# compute-heavy. Bump to shared-cpu-2x + 1024MB before enabling finBERT
-# or LightGBM on large symbol lists.
+# compute-heavy. Bump to shared-cpu-2x + 1024MB before enabling LightGBM
+# on large symbol lists.
 [[vm]]
   size = "shared-cpu-1x"
   memory = "512mb"

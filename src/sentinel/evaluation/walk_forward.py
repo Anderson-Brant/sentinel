@@ -66,6 +66,36 @@ class WalkForwardReport:
         )
 
 
+def _fold_bounds(n: int, *, cfg: SentinelConfig) -> list[tuple[int, int, int]]:
+    """Shared fold geometry: ``(train_end, test_start, test_end)`` per fold.
+
+    Expanding window - train on everything before the fold, test on the next
+    contiguous chunk, equal-size test folds over the tail. Both the metric
+    report and the OOS prediction series must come from *identical* splits,
+    so this is the only place the arithmetic lives.
+    """
+    min_train = cfg.modeling.walk_forward.min_train_size
+    n_splits = cfg.modeling.walk_forward.n_splits
+
+    if n < min_train + n_splits:
+        raise ValueError(
+            f"Not enough rows for walk-forward ({n} < min_train {min_train} + n_splits {n_splits})."
+        )
+
+    tail = n - min_train
+    fold_size = max(1, tail // n_splits)
+
+    bounds: list[tuple[int, int, int]] = []
+    for i in range(n_splits):
+        train_end = min_train + i * fold_size
+        test_start = train_end
+        test_end = min(test_start + fold_size, n)
+        if test_end <= test_start:
+            break
+        bounds.append((train_end, test_start, test_end))
+    return bounds
+
+
 def walk_forward_evaluate(
     features: pd.DataFrame, *, model_name: str, cfg: SentinelConfig
 ) -> WalkForwardReport:
@@ -80,27 +110,8 @@ def walk_forward_evaluate(
     yesterday_sign = (feats["target_direction"].shift(1).fillna(0).astype(int)).to_numpy()
     dates = feats.index
 
-    n = len(feats)
-    min_train = cfg.modeling.walk_forward.min_train_size
-    n_splits = cfg.modeling.walk_forward.n_splits
-
-    if n < min_train + n_splits:
-        raise ValueError(
-            f"Not enough rows for walk-forward ({n} < min_train {min_train} + n_splits {n_splits})."
-        )
-
-    # Equal-size test folds over the tail.
-    tail = n - min_train
-    fold_size = max(1, tail // n_splits)
-
     folds: list[FoldMetrics] = []
-    for i in range(n_splits):
-        train_end = min_train + i * fold_size
-        test_start = train_end
-        test_end = min(test_start + fold_size, n)
-        if test_end <= test_start:
-            break
-
+    for i, (train_end, test_start, test_end) in enumerate(_fold_bounds(len(feats), cfg=cfg)):
         X_tr, y_tr = X[:train_end], y[:train_end]
         X_te, y_te = X[test_start:test_end], y[test_start:test_end]
 
@@ -170,28 +181,14 @@ def walk_forward_predictions(
     X = feats[feat_cols].astype(float).to_numpy()
     y = feats["target_direction"].astype(int).to_numpy()
 
-    n = len(feats)
-    min_train = cfg.modeling.walk_forward.min_train_size
-    n_splits = cfg.modeling.walk_forward.n_splits
-    if n < min_train + n_splits:
-        raise ValueError(
-            f"Not enough rows for walk-forward ({n} < min_train {min_train} + n_splits {n_splits})."
-        )
-
-    tail = n - min_train
-    fold_size = max(1, tail // n_splits)
+    bounds = _fold_bounds(len(feats), cfg=cfg)
     probs = pd.Series(np.nan, index=feats.index, dtype=float, name="p_up")
 
-    for i in range(n_splits):
-        train_end = min_train + i * fold_size
-        test_start = train_end
-        test_end = min(test_start + fold_size, n)
-        if test_end <= test_start:
-            break
+    for train_end, test_start, test_end in bounds:
         pipeline = build_classifier(model_name, random_state=cfg.modeling.random_state)
         pipeline.fit(X[:train_end], y[:train_end])
         probs.iloc[test_start:test_end] = pipeline.predict_proba(X[test_start:test_end])[:, 1]
 
     n_oos = int(probs.notna().sum())
-    log.info("walk-forward predictions: %d OOS rows over %d folds", n_oos, n_splits)
+    log.info("walk-forward predictions: %d OOS rows over %d folds", n_oos, len(bounds))
     return probs

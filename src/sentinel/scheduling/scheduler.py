@@ -19,9 +19,9 @@ The design choices worth calling out:
   That makes the scheduler idempotent across crashes - if the process dies
   mid-loop, the next startup picks up where it left off based on what's
   actually in ``job_runs``.
-* **Clock + sleeper are injected.** The defaults are
-  ``datetime.utcnow()`` and ``time.sleep``; tests pass fakes that advance
-  time deterministically.
+* **Clock + sleeper are injected.** The defaults are a naive-UTC "now"
+  and ``time.sleep``; tests pass fakes that advance time
+  deterministically.
 * **Per-job error isolation.** One failing job never aborts the loop; the
   failure goes into ``job_runs.status = 'error'`` and the scheduler moves
   on to the next due job.
@@ -34,7 +34,7 @@ from __future__ import annotations
 import time
 import traceback
 from collections.abc import Callable, Iterable
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sentinel.scheduling.registry import get_job
 from sentinel.scheduling.spec import (
@@ -56,8 +56,9 @@ Sleeper = Callable[[float], None]
 
 
 def _default_clock() -> datetime:
-    # naive UTC to match job_runs schema
-    return datetime.utcnow()
+    # Naive UTC to match the job_runs schema. datetime.utcnow() is deprecated
+    # since 3.12; this is its exact replacement.
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Scheduler:

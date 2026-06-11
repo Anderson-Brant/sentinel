@@ -4,7 +4,7 @@
 # Run `make` or `make help` to see what's available.
 
 .DEFAULT_GOAL := help
-.PHONY: help install install-all lint format test test-cov verify clean \
+.PHONY: help install install-all lint format typecheck test test-cov clean \
         docker-build docker-up docker-down docker-logs \
         compose-validate release-check
 
@@ -26,7 +26,7 @@ install:  ## Editable install with dev extras only.
 	$(PIP) install -e ".[dev]"
 
 install-all:  ## Editable install with every optional extra (heavy).
-	$(PIP) install -e ".[dev,social,ml-extra,tracking,postgres,crypto,explain,transformers]"
+	$(PIP) install -e ".[dev,social,ml-extra,tracking,postgres,crypto,explain]"
 
 ##@ Code quality
 
@@ -37,17 +37,14 @@ format:  ## Autoformat with ruff.
 	ruff format src tests
 	ruff check --fix src tests
 
+typecheck:  ## Run mypy on src.
+	mypy src
+
 test:  ## Run the pytest suite.
 	pytest -q
 
 test-cov:  ## Run pytest with coverage.
 	pytest --cov=sentinel --cov-report=term-missing
-
-verify:  ## Run every sandbox verify_*.py script at the repo root.
-	@set -e; for f in ../verify_*.py; do \
-	    echo "--- $$f ---"; \
-	    $(PYTHON) "$$f"; \
-	done
 
 ##@ Docker / Compose
 

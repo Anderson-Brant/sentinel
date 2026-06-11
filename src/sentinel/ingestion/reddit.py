@@ -28,6 +28,7 @@ import pandas as pd
 
 from sentinel.config import IngestionRedditConfig, Secrets
 from sentinel.ingestion.mentions import extract_mentions_for_records
+from sentinel.storage.base import Store
 from sentinel.storage.duckdb_store import DuckDBStore
 from sentinel.utils.logging import get_logger
 
@@ -175,7 +176,7 @@ def _submission_to_post(submission) -> RedditPost:
 
 def ingest_posts(
     *,
-    store: DuckDBStore | None = None,
+    store: Store | None = None,
     reddit_cfg: IngestionRedditConfig | None = None,
     symbol_whitelist: set[str] | None = None,
     fetcher: PostFetcher | None = None,
@@ -184,7 +185,8 @@ def ingest_posts(
 
     Parameters
     ----------
-    store : Target DuckDB store. Created with defaults if ``None``.
+    store : Target store (any ``Store`` backend). A default DuckDB store
+            is created if ``None``.
     reddit_cfg : Subreddit + limit settings. Defaults if ``None``.
     symbol_whitelist : Optional set of tickers to catch without a ``$`` prefix.
                        Highly recommended in production to cut noise.

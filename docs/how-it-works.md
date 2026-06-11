@@ -50,7 +50,7 @@ There are **~30 feature columns** plus two target columns. See [Part 3](#part-3-
 
 ### 2.3 The `reddit_posts` and `tweets` tables
 
-Stored social-media posts mentioning tickers. Only populated if you run `sentinel ingest reddit` or `sentinel ingest twitter`. Each row carries sentiment scores from VADER (or, optionally, finBERT).
+Stored social-media posts mentioning tickers. Only populated if you run `sentinel ingest reddit` or `sentinel ingest twitter`. Each row carries sentiment scores from VADER.
 
 | Column               | What it is                                                     |
 | -------------------- | -------------------------------------------------------------- |

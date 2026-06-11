@@ -21,7 +21,7 @@ simulated long/short strategy in the backtest.
 
 **What we are trying to answer, in order of importance:**
 
-1. Do sentiment features (Reddit, X/Twitter, finBERT) add **durable
+1. Do sentiment features (Reddit, X/Twitter) add **durable
    out-of-sample edge** over a technical-only feature stack?
 2. If they do, **where**: which regimes, which symbols, which
    horizons? Edge that only appears in one vol tercile is a different
@@ -91,12 +91,18 @@ measure each source's contribution in isolation:
 | `technical` | returns (1/5/21d), SMA 20/50/200, EMA 12/26, realized vol (21d), RSI-14, volume z-score (21d), SMA-50/SMA-200 crossover | always on |
 | `reddit`    | mention count, mention z-score (7/21d), VADER sentiment mean (1/3/7d), engagement-weighted sentiment | `--with-sentiment` |
 | `twitter`   | mention count, mention z-score, VADER sentiment mean (1/3/7d), engagement-weighted sentiment | `--with-sentiment` |
-| `finbert`   | optional drop-in replacement for VADER on both reddit + twitter columns | `--scorer finbert` |
 
-All features use information available at time *t* only. Rolling
-statistics are computed with `closed="left"`; the same-day bar never
-contaminates its own prediction. This is enforced at the feature layer,
-not left to the modeler.
+All features use information available at the close of bar *t* only.
+The day-*t* bar itself is fair game (it is known at the close, which is
+when the prediction is made); the target starts at *t+1*. This is
+enforced at the feature layer, not left to the modeler.
+
+Sentiment timing follows the same rule: a post only counts toward the
+trading day on which it was knowable at the close. Posts created after
+the close cutoff (20:00 UTC, conservatively before the US cash close
+year-round) roll forward to the next trading day, and weekend/holiday
+posts roll to the next session. Without this, a backtest quietly reads
+evening and weekend chatter into a close that already happened.
 
 ## Models and baselines
 
@@ -168,6 +174,11 @@ noise and is reported as such.
 - **Overfit via scheduler refit.** The scheduler has the power to
   refit daily. For the study we refit quarterly (step=56 days) and
   note deviations from this cadence.
+- **Threshold tuning on OOS output.** The backtest entry thresholds
+  (default 0.55/0.45) are hyperparameters. Sweeping them against the
+  same out-of-sample predictions and reporting the best cell is
+  tuning leakage, full stop. Defaults stay fixed across the study;
+  any sensitivity analysis reports the whole sweep, not the peak.
 
 ## What a v0.1 study writeup would include
 

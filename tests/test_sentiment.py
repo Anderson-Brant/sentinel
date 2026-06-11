@@ -111,16 +111,22 @@ def test_sentiment_features_per_day_rollup_counts_and_signs(tmp_path):
 
     feats = sentiment_features_for_symbol(store, "TSLA")
 
-    # Shape: the 3 TSLA posts span day 0 and day 2 → 2 rows.
+    # Shape: posts span day 0 → day 2; the grid is contiguous calendar days,
+    # so the quiet day 1 is present with zero mentions (rolling windows need it).
     assert set(feats.columns) == set(SENTIMENT_FEATURE_COLS)
-    assert len(feats) == 2
+    assert len(feats) == 3
 
     day0 = feats.iloc[0]
+    day1 = feats.iloc[1]
     day2 = feats.iloc[-1]
 
     # Day 0: 2 bullish posts → mention_count 2, mean compound 0.5.
     assert day0["reddit_mention_count"] == 2
     assert day0["reddit_sentiment_mean"] == 0.5
+
+    # Day 1: no posts → zero mentions, NaN sentiment.
+    assert day1["reddit_mention_count"] == 0
+    assert np.isnan(day1["reddit_sentiment_mean"])
 
     # Day 2: 1 bearish post, mean compound -0.5.
     assert day2["reddit_mention_count"] == 1
@@ -187,3 +193,66 @@ def test_engagement_weighted_mean_moves_toward_high_score_post(tmp_path):
     feats = sentiment_features_for_symbol(store, "TSLA")
     # Only 1 post mentions TSLA ("c"). But verify wmean == mean when N=1.
     assert np.isclose(feats.iloc[0]["reddit_sentiment_wmean"], -0.5)
+
+
+# ---------------------------------------------------------------------------
+# No-lookahead bucketing - the part a leaky backtest would never notice
+# ---------------------------------------------------------------------------
+
+
+def _mk_post_at(pid: str, title: str, ts: datetime, *, score=10, comments=5):
+    return RedditPost(
+        post_id=pid,
+        created_ts=ts,
+        subreddit="wallstreetbets",
+        author="u/x",
+        title=title,
+        body="",
+        score=score,
+        num_comments=comments,
+        url=f"https://r/{pid}",
+    )
+
+
+def _store_with_posts(tmp_path, posts):
+    store = DuckDBStore(path=tmp_path / "s.duckdb")
+    from sentinel.config import IngestionRedditConfig
+
+    ingest_posts(
+        store=store,
+        reddit_cfg=IngestionRedditConfig(subreddits=["x"], max_posts_per_run=100),
+        symbol_whitelist={"TSLA"},
+        fetcher=_PostFetcher(posts),
+    )
+    with store._connect() as con:  # noqa: SLF001
+        raw = con.execute("SELECT post_id, title, body FROM reddit_posts").fetchdf()
+    store.update_reddit_sentiment(score_posts(raw, scorer=_FakeScorer()))
+    return store
+
+
+def test_post_after_close_cutoff_rolls_to_next_day(tmp_path):
+    """A post written after the close was not knowable at that day's close -
+    it must count toward the next trading day, never its own."""
+    # 2026-04-01 21:30 UTC is after the 20:00 UTC cutoff.
+    late = _mk_post_at("late", "$TSLA to the moon", datetime(2026, 4, 1, 21, 30, tzinfo=UTC))
+    store = _store_with_posts(tmp_path, [late])
+
+    idx = pd.date_range("2026-04-01", periods=3, freq="D")
+    feats = sentiment_features_for_symbol(store, "TSLA", index=idx)
+
+    assert feats.loc["2026-04-01", "reddit_mention_count"] == 0
+    assert feats.loc["2026-04-02", "reddit_mention_count"] == 1
+
+
+def test_weekend_post_lands_on_next_session(tmp_path):
+    """With a trading calendar (no weekends), Saturday chatter belongs to Monday."""
+    # 2026-04-04 is a Saturday.
+    weekend = _mk_post_at("wknd", "$TSLA bull", datetime(2026, 4, 4, 12, 0, tzinfo=UTC))
+    store = _store_with_posts(tmp_path, [weekend])
+
+    idx = pd.bdate_range("2026-04-01", periods=6)  # Wed Apr 1 ... Wed Apr 8
+    feats = sentiment_features_for_symbol(store, "TSLA", index=idx)
+
+    monday = pd.Timestamp("2026-04-06")
+    assert feats.loc[monday, "reddit_mention_count"] == 1
+    assert (feats.drop(index=monday)["reddit_mention_count"] == 0).all()

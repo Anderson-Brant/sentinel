@@ -118,7 +118,6 @@ def test_relative_links_resolve(source_file):
 _EXPECTED_EXTRAS = {
     "social",
     "ml-extra",
-    "transformers",
     "tracking",
     "explain",
     "postgres",

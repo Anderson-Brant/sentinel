@@ -235,13 +235,7 @@ def ingest_crypto_job(
 
 
 @register("score-sentiment")
-def score_sentiment_job(
-    store: Store,
-    *,
-    scorer: str = "vader",
-    model_name: str | None = None,
-    batch_size: int = 16,
-) -> JobResult:
+def score_sentiment_job(store: Store) -> JobResult:
     """Re-score all stored Reddit posts AND tweets in a single pass."""
     from sentinel.features.sentiment import score_posts, score_tweets
 
@@ -250,30 +244,18 @@ def score_sentiment_job(
     if posts.empty and tweets.empty:
         return {"rows_written": 0, "detail": "no Reddit posts or tweets in storage"}
 
-    fb = None
-    if scorer.lower() != "vader":
-        from sentinel.features.finbert import DEFAULT_MODEL, FinBertScorer
-
-        fb = FinBertScorer(
-            model_name=model_name or DEFAULT_MODEL, batch_size=batch_size
-        )
-
     n_posts = 0
     if not posts.empty:
-        scored = score_posts(posts) if fb is None else score_posts(posts, scorer=fb)
-        n_posts = store.update_reddit_sentiment(scored)
+        n_posts = store.update_reddit_sentiment(score_posts(posts))
 
     n_tweets = 0
     if not tweets.empty:
-        scored_t = (
-            score_tweets(tweets) if fb is None else score_tweets(tweets, scorer=fb)
-        )
-        n_tweets = store.update_tweet_sentiment(scored_t)
+        n_tweets = store.update_tweet_sentiment(score_tweets(tweets))
 
     total = n_posts + n_tweets
     return {
         "rows_written": total,
-        "detail": f"scored {n_posts} posts + {n_tweets} tweets with {scorer}",
+        "detail": f"scored {n_posts} posts + {n_tweets} tweets",
     }
 
 

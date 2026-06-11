@@ -4,6 +4,28 @@ All notable changes to Sentinel will be documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+### Removed
+- finBERT scorer and the `[transformers]` extra. The transformer path added
+  ~2GB of torch for a scorer that never made it into the evaluation protocol;
+  VADER is the single sentiment backend again. `sentinel score-sentiment`
+  loses its `--scorer` / `--model-name` / `--batch-size` options.
+
+### Fixed
+- Backtest summary metrics (Sharpe, vol, total/annualized return, drawdown,
+  exposure, turnover) are now computed over the out-of-sample window only.
+  Previously the flat walk-forward warmup diluted both the strategy and the
+  buy-and-hold comparison.
+- Sentiment features no longer read post-close posts into the same day's
+  close. Posts after 20:00 UTC roll forward to the next trading day, and
+  weekend/holiday posts roll to the next session.
+- Rolling sentiment windows (5d/20d means, mention z-score) are computed on
+  the trading calendar instead of post-days only, so a "5-day" mean can no
+  longer silently span weeks for thinly-mentioned symbols.
+- `sentinel ingest reddit` / `ingest twitter` no longer crash when invoking
+  the sentiment re-score step after a fetch (unresolved Typer option
+  defaults, same class of bug as the 0.1.1 demo fix).
+
 ## [0.1.1] - 2026-04-19
 ### Fixed
 - `sentinel demo` no longer crashes with `AttributeError: 'OptionInfo' object 

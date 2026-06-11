@@ -273,8 +273,10 @@ def test_sentiment_features_twitter_only(tmp_path):
     feats = sentiment_features_for_symbol(store, "TSLA")
     # Every canonical column exists, reddit or twitter.
     assert set(feats.columns) == set(SENTIMENT_FEATURE_COLS)
-    # Two rows: day 0, day 2.
-    assert len(feats) == 2
+    # Contiguous calendar grid day 0 → day 2; the quiet day 1 is present
+    # with zero mentions so rolling windows see it.
+    assert len(feats) == 3
+    assert feats.iloc[1]["twitter_mention_count"] == 0
 
     day0 = feats.iloc[0]
     assert day0["twitter_mention_count"] == 2

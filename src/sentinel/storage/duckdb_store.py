@@ -185,12 +185,10 @@ class DuckDBStore:
         to_write["date"] = pd.to_datetime(to_write["date"]).dt.date
 
         with self._connect() as con:
-            exists = (
-                con.execute(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'features'"
-                ).fetchone()[0]
-                > 0
-            )
+            row = con.execute(
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'features'"
+            ).fetchone()
+            exists = bool(row and row[0] > 0)
             con.register("incoming", to_write)
             if not exists:
                 con.execute("CREATE TABLE features AS SELECT * FROM incoming WHERE 1=0")
@@ -207,12 +205,10 @@ class DuckDBStore:
     def read_features(self, symbol: str) -> pd.DataFrame:
         symbol = symbol.upper()
         with self._connect() as con:
-            exists = (
-                con.execute(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'features'"
-                ).fetchone()[0]
-                > 0
-            )
+            row = con.execute(
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'features'"
+            ).fetchone()
+            exists = bool(row and row[0] > 0)
             if not exists:
                 return pd.DataFrame()
             df = con.execute(

@@ -24,16 +24,12 @@ sentinel demo SPY
 ## Repository layout
 
 Everything worth touching lives under `src/sentinel/`. Tests mirror the
-module structure in `tests/`, and each non-trivial module has a
-companion `verify_*.py` at the repo root: a standalone script that
-exercises the module in environments where `pytest` or the full dep
-set isn't available (the CI runs pytest; the sandbox runs verify).
-See `docs/methodology.md` for the evaluation protocol the platform is
-built around.
+module structure in `tests/`. See `docs/methodology.md` for the
+evaluation protocol the platform is built around.
 
 ```
 src/sentinel/
-├── cli.py              Typer CLI entrypoint (the only user surface)
+├── cli/                Typer CLI, one module per domain (the only user surface)
 ├── config.py           Pydantic settings (merges YAML + env + defaults)
 ├── ingestion/          Data adapters: yfinance, ccxt, reddit, twitter
 ├── storage/            Store protocol + DuckDB + Postgres backends
@@ -48,25 +44,15 @@ src/sentinel/
 
 ## Testing
 
-Three overlapping layers. Don't skip any of them when contributing:
+Two overlapping layers. Don't skip either when contributing:
 
 - **pytest** (`pytest -q`). Primary test suite. Every new module should
   land with tests here. Aim for the same style as the existing suites:
   small fixtures, no network, injected fakes rather than patched
   globals.
-- **verify\_\<module\>.py** at the repo root. A standalone assertion
-  script that works in a dep-poor sandbox by stubbing heavy optional
-  dependencies (pydantic, duckdb, ccxt, transformers, etc.). Use
-  `verify_crypto.py` or `verify_docker.py` as templates. These exist so
-  that a reviewer without Docker or MLflow can still confirm the
-  module's invariants end-to-end.
-- **CI** (`.github/workflows/ci.yml`). pytest + ruff on Python 3.11 and
-  3.12, plus a docker build + hadolint + smoke-test job, plus a
-  compose-profile validation job.
-
-If you change a module, re-run its `verify_*.py` locally before pushing.
-CI does not run them directly, so the repo-root sandbox is the
-convention.
+- **CI** (`.github/workflows/ci.yml`). pytest + ruff (lint and format)
+  + mypy on Python 3.11 through 3.14, plus a docker build + hadolint +
+  smoke-test job, plus a compose-profile validation job.
 
 ## Extending along the three axes
 
@@ -80,8 +66,8 @@ convention.
    table if the source is bar data, or add a dedicated table via the
    storage backends if not (see how `reddit_posts` and `tweets` were
    added).
-3. Wire a `@ingest_app.command("<source>")` into `cli.py`, following
-   the signature of `ingest crypto` or `ingest twitter`.
+3. Wire a `@ingest_app.command("<source>")` into `cli/ingest.py`,
+   following the signature of `ingest crypto` or `ingest twitter`.
 4. Register a scheduler kind in `scheduling/registry.py` with per-item
    failure isolation (don't let one bad symbol abort the batch).
 5. Add to `.env.example` if the source needs credentials, and extend

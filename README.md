@@ -63,7 +63,7 @@ sentinel regimes  SPY                                # when does the strategy wo
 sentinel explain  SPY --model xgboost --method shap
 ```
 
-Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra` (XGBoost/LightGBM), `tracking` (MLflow), `explain` (SHAP), `transformers` (finBERT), `postgres`, `crypto`.
+Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra` (XGBoost/LightGBM), `tracking` (MLflow), `explain` (SHAP), `postgres`, `crypto`.
 
 ## Capabilities
 
@@ -71,7 +71,7 @@ Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra
 |---|---|
 | **Ingestion** | Equities via `yfinance`; crypto via `ccxt` (any exchange, BTC-USD ↔ BTC/USDT symbol normalization); Reddit via `praw` with cashtag / whitelist extraction; X/Twitter via `tweepy` v2 with engagement-weighted sentiment |
 | **Storage** | Pluggable `Store` protocol. DuckDB (default, zero-setup). Postgres / TimescaleDB opt-in; hypertables when the extension is live, plain tables otherwise |
-| **Features** | Technical (returns, SMA/EMA, realized vol, momentum, volume z-scores); sentiment (VADER rollups + optional finBERT); prefixed blocks so ablation partitions cleanly |
+| **Features** | Technical (returns, SMA/EMA, realized vol, momentum, volume z-scores); sentiment (VADER rollups per source; posts after the close roll to the next trading day so day-t features only see pre-close posts); prefixed blocks so ablation partitions cleanly |
 | **Models** | Logistic + Random Forest baselines; XGBoost + LightGBM via lazy-imported `[ml-extra]` |
 | **Evaluation** | Walk-forward / rolling-origin CV; directional + regression targets; ablation harness; regime-sliced performance (vol terciles × bull/bear SMA crossover) |
 | **Backtest** | Signal to equity curve to Sharpe / Sortino / max DD / hit rate; transaction costs; vol-targeted sizing with leverage cap, 1-bar shifted |
@@ -194,7 +194,7 @@ For single-machine cloud deployment, see [`deploy/fly.toml`](deploy/fly.toml), a
 
 ```
 src/sentinel/
-├── cli.py              Typer CLI entrypoint
+├── cli/                Typer CLI, one module per domain
 ├── config.py           Pydantic settings
 ├── ingestion/          yfinance + ccxt + reddit + twitter adapters
 ├── storage/            Pluggable Store (DuckDB default, Postgres/Timescale opt-in)
