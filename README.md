@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-> **v0.2.0 shipped.** New `sentinel analyze` long-term scorecard (price history + valuation rows live, quality/insiders/competitive next). The v0.1 loop still runs end-to-end: equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks, pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in), multi-stage Docker image + Fly.io deploy recipe.
+> **v0.3.0 shipped.** The `sentinel analyze` long-term scorecard is complete: quality, valuation, price history, insiders, and competitive position all grade, with related-ticker discovery. The v0.1 loop still runs end-to-end: equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks, pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in), multi-stage Docker image + Fly.io deploy recipe.
 
 ## What it does
 

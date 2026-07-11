@@ -4,7 +4,7 @@ All notable changes to Sentinel will be documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2026-07-11
 ### Added
 - All five `sentinel analyze` rows now grade. Quality: ROIC, gross margin
   level + stability, operating margin trend, net debt / EBITDA, revenue
