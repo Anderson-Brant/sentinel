@@ -128,6 +128,8 @@ filterwarnings = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+# No python_version pin: each CI job checks against its own interpreter.
+# Pinning 3.11 made mypy parse numpy's stubs as 3.11 syntax, which breaks
+# once numpy ships PEP 695 type statements (any runner on 3.12+).
 strict = false
 ignore_missing_imports = true
