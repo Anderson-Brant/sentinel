@@ -16,11 +16,7 @@ from sentinel.analyze.analysis import Analysis
 
 console = Console()
 
-_PENDING = {
-    "Quality": "v0.3",
-    "Insiders": "v0.5",
-    "Competitive": "v0.6",
-}
+DETAIL_VIEWS = ("quality", "valuation", "price", "insiders", "competitive")
 
 
 def _grade_style(grade: str) -> str:
@@ -48,6 +44,10 @@ def _fmt(x: float | None, spec: str = ".2f") -> str:
     return f"{x:{spec}}"
 
 
+def _fmt_pct(x: float | None) -> str:
+    return "-" if x is None else f"{x * 100:.1f}%"
+
+
 def _header(analysis: Analysis) -> str:
     bits = [f"[bold]{analysis.symbol}[/bold]"]
     if analysis.company_name:
@@ -70,42 +70,38 @@ def render_analysis(analysis: Analysis, *, detail: str | None = None) -> None:
     table.add_column("Grade", min_width=4)
     table.add_column("Evidence")
 
-    def _row(label: str, grade: str | None, summary: str) -> None:
+    def _row(label: str, score: object | None, fallback: str) -> None:
+        grade = getattr(score, "grade", None) if score is not None else None
+        summary = getattr(score, "summary", "") if score is not None else ""
         if grade:
             table.add_row(label, Text(grade, style=_grade_style(grade)), summary)
         else:
-            table.add_row(label, "—", f"[dim]{summary}[/dim]")
+            table.add_row(label, "—", f"[dim]{summary or fallback}[/dim]")
 
-    _row("Quality", None, f"(pending, {_PENDING['Quality']})")
-    if analysis.valuation is not None:
-        _row("Valuation", analysis.valuation.grade, analysis.valuation.summary)
-    else:
-        _row("Valuation", None, "no fundamentals data")
-    if analysis.price_history is not None:
-        _row("Price hist", analysis.price_history.grade, analysis.price_history.summary)
-    else:
-        _row("Price hist", None, "no price data")
-    _row("Insiders", None, f"(pending, {_PENDING['Insiders']})")
-    _row("Competitive", None, f"(pending, {_PENDING['Competitive']})")
+    _row("Quality", analysis.quality, "no fundamentals data")
+    _row("Valuation", analysis.valuation, "no fundamentals data")
+    _row("Price hist", analysis.price_history, "no price data")
+    _row("Insiders", analysis.insiders, "no insider filings available")
+    _row("Competitive", analysis.competitive, "no fundamentals data")
 
     console.print(table)
     console.print()
 
     if analysis.composite_grade:
-        scored = []
-        if analysis.price_history is not None and analysis.price_history.grade:
-            scored.append("price history")
-        if analysis.valuation is not None and analysis.valuation.grade:
-            scored.append("valuation")
+        scored = [name for name, _ in analysis.scored_rows()]
         composite = Text()
         composite.append("Composite: ")
         composite.append(
             analysis.composite_grade, style=_grade_style(analysis.composite_grade)
         )
-        composite.append(f"   ({' + '.join(scored)} only)", style="dim")
+        if len(scored) < 5:
+            composite.append(f"   ({' + '.join(scored)} only)", style="dim")
         console.print(composite)
     else:
         console.print("[dim]Composite: — (no rows scored)[/dim]")
+
+    if analysis.related_tickers:
+        console.print(f"[dim]Related: {', '.join(analysis.related_tickers)}[/dim]")
 
     for note in analysis.notes:
         console.print(f"[dim]note: {note}[/dim]")
@@ -114,6 +110,19 @@ def render_analysis(analysis: Analysis, *, detail: str | None = None) -> None:
         _render_price_detail(analysis)
     elif detail == "valuation":
         _render_valuation_detail(analysis)
+    elif detail == "quality":
+        _render_quality_detail(analysis)
+    elif detail == "insiders":
+        _render_insiders_detail(analysis)
+    elif detail == "competitive":
+        _render_competitive_detail(analysis)
+
+
+def _detail_table(title: str) -> Table:
+    table = Table(title=title, title_style="bold", show_lines=False)
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+    return table
 
 
 def _render_price_detail(analysis: Analysis) -> None:
@@ -122,9 +131,7 @@ def _render_price_detail(analysis: Analysis) -> None:
         console.print("[red]No price history to detail.[/red]")
         return
     console.print()
-    table = Table(title="Price history detail", title_style="bold", show_lines=False)
-    table.add_column("Metric")
-    table.add_column("Value", justify="right")
+    table = _detail_table("Price history detail")
     for h in sorted(ph.cagr):
         table.add_row(f"CAGR {h}y", f"{ph.cagr[h] * 100:+.1f}%")
     table.add_row("Max drawdown", f"{ph.max_drawdown * 100:.1f}%")
@@ -159,4 +166,60 @@ def _render_valuation_detail(analysis: Analysis) -> None:
         "",
     )
     table.add_row("Numeric score", _fmt(v.score, ".1f"), "")
+    console.print(table)
+
+
+def _render_quality_detail(analysis: Analysis) -> None:
+    q = analysis.quality
+    if q is None:
+        console.print("[red]No quality data to detail.[/red]")
+        return
+    console.print()
+    table = _detail_table("Quality detail")
+    table.add_row("ROIC", _fmt_pct(q.roic))
+    table.add_row("Gross margin", _fmt_pct(q.gross_margin))
+    table.add_row("Gross margin stability (std)", _fmt_pct(q.gross_margin_stability))
+    table.add_row("Operating margin", _fmt_pct(q.operating_margin))
+    table.add_row(
+        "Op margin trend",
+        "-" if q.operating_margin_trend is None else f"{q.operating_margin_trend * 100:+.1f}pp/yr",
+    )
+    table.add_row(
+        "Net debt / EBITDA",
+        "net cash" if q.net_debt_ebitda is not None and q.net_debt_ebitda <= 0 else _fmt(q.net_debt_ebitda, ".1f"),
+    )
+    table.add_row("Revenue growth", _fmt_pct(q.revenue_growth))
+    table.add_row("Growth stability (std of YoY)", _fmt_pct(q.growth_stability))
+    table.add_row("Numeric score", _fmt(q.score, ".1f"))
+    console.print(table)
+
+
+def _render_insiders_detail(analysis: Analysis) -> None:
+    i = analysis.insiders
+    if i is None:
+        console.print("[red]No insider data to detail.[/red]")
+        return
+    console.print()
+    table = _detail_table("Insiders detail")
+    table.add_row("Net 6mo (% of shares)", _fmt_pct(i.net_pct_6m))
+    table.add_row("Net 12mo (% of shares)", _fmt_pct(i.net_pct_12m))
+    table.add_row("Buys (6mo)", str(i.n_buys_6m))
+    table.add_row("Sells (6mo)", str(i.n_sells_6m))
+    table.add_row("Numeric score", _fmt(i.score, ".1f"))
+    console.print(table)
+
+
+def _render_competitive_detail(analysis: Analysis) -> None:
+    c = analysis.competitive
+    if c is None:
+        console.print("[red]No competitive data to detail.[/red]")
+        return
+    console.print()
+    table = _detail_table("Competitive detail")
+    table.add_row("Sector", c.sector or "-")
+    table.add_row("Revenue growth", _fmt_pct(c.revenue_growth))
+    table.add_row("Sector median growth", _fmt_pct(c.sector_growth))
+    table.add_row("Operating margin", _fmt_pct(c.operating_margin))
+    table.add_row("Sector median margin", _fmt_pct(c.sector_margin))
+    table.add_row("Numeric score", _fmt(c.score, ".1f"))
     console.print(table)

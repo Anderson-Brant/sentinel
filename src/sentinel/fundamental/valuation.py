@@ -74,6 +74,14 @@ class FundamentalsSnapshot:
     fcf_ps_history: pd.Series | None = None
     # Monthly closes over the percentile window.
     monthly_close: pd.Series | None = None
+    # Annual absolute histories (fiscal year end -> value) for the quality row.
+    revenue_history: pd.Series | None = None
+    gross_profit_history: pd.Series | None = None
+    operating_income_history: pd.Series | None = None
+    net_income_history: pd.Series | None = None
+    equity_history: pd.Series | None = None
+    debt_history: pd.Series | None = None
+    cash_history: pd.Series | None = None
 
 
 @dataclass
@@ -228,6 +236,18 @@ def _get(info: dict, key: str) -> float | None:
     return v if v == v else None  # drop NaN
 
 
+def _stmt_row(stmt: pd.DataFrame | None, *labels: str) -> pd.Series | None:
+    """First matching row from a yfinance statement, oldest to newest."""
+    if stmt is None or stmt.empty:
+        return None
+    for label in labels:
+        if label in stmt.index:
+            row = stmt.loc[label].dropna()
+            if not row.empty:
+                return row.astype(float).sort_index()
+    return None
+
+
 def _per_share_row(stmt: pd.DataFrame | None, label: str, shares: float | None) -> pd.Series | None:
     if stmt is None or stmt.empty or label not in stmt.index:
         return None
@@ -288,10 +308,26 @@ def fetch_snapshot(symbol: str, *, percentile_years: int = 5) -> FundamentalsSna
         cashflow = ticker.cashflow
     except Exception:
         cashflow = None
+    try:
+        balance = ticker.balance_sheet
+    except Exception:
+        balance = None
 
     snap.eps_history = _per_share_row(income, "Basic EPS", snap.shares_outstanding)
     snap.revenue_ps_history = _per_share_row(income, "Total Revenue", snap.shares_outstanding)
     snap.fcf_ps_history = _per_share_row(cashflow, "Free Cash Flow", snap.shares_outstanding)
+
+    snap.revenue_history = _stmt_row(income, "Total Revenue")
+    snap.gross_profit_history = _stmt_row(income, "Gross Profit")
+    snap.operating_income_history = _stmt_row(income, "Operating Income")
+    snap.net_income_history = _stmt_row(income, "Net Income")
+    snap.equity_history = _stmt_row(balance, "Stockholders Equity", "Common Stock Equity")
+    snap.debt_history = _stmt_row(balance, "Total Debt")
+    snap.cash_history = _stmt_row(
+        balance,
+        "Cash And Cash Equivalents",
+        "Cash Cash Equivalents And Short Term Investments",
+    )
 
     try:
         hist = ticker.history(period=f"{percentile_years}y", interval="1mo")

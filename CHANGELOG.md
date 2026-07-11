@@ -4,6 +4,18 @@ All notable changes to Sentinel will be documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+### Added
+- All five `sentinel analyze` rows now grade. Quality: ROIC, gross margin
+  level + stability, operating margin trend, net debt / EBITDA, revenue
+  growth + stability, scored against absolute bands with fixed weights.
+  Insiders: net buying/selling over 6/12 months as a percent of shares
+  outstanding, from Yahoo's Form 4 feed; grants and awards excluded.
+  Competitive: revenue growth and operating margin vs static sector-median
+  baselines. New detail views for all three, a correlation-based
+  `Related:` line computed from stored symbols (`--no-related` to skip),
+  and the composite now averages every row that could be scored.
+
 ## [0.2.0] - 2026-07-11
 ### Added
 - `sentinel analyze TICKER`: long-term analysis scorecard (first slice of

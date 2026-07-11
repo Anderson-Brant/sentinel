@@ -70,7 +70,7 @@ Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra
 
 | Layer | What you get |
 |---|---|
-| **Analysis** | `sentinel analyze TICKER`: long-term scorecard, letter grade + one line of evidence per dimension. Price history (multi-horizon CAGR, drawdown/recovery) and valuation (ratios + percentile vs own history) today; quality, insiders, competitive position land next ([docs/analyze.md](docs/analyze.md)) |
+| **Analysis** | `sentinel analyze TICKER`: long-term scorecard, letter grade + one line of evidence per dimension. Quality (ROIC, margins, leverage, growth), valuation (ratios + percentile vs own history), price history (multi-horizon CAGR, drawdown/recovery), insider activity, competitive position, plus correlation-based related tickers ([docs/analyze.md](docs/analyze.md)) |
 | **Ingestion** | Equities via `yfinance`; crypto via `ccxt` (any exchange, BTC-USD ↔ BTC/USDT symbol normalization); Reddit via `praw` with cashtag / whitelist extraction; X/Twitter via `tweepy` v2 with engagement-weighted sentiment |
 | **Storage** | Pluggable `Store` protocol. DuckDB (default, zero-setup). Postgres / TimescaleDB opt-in; hypertables when the extension is live, plain tables otherwise |
 | **Features** | Technical (returns, SMA/EMA, realized vol, momentum, volume z-scores); sentiment (VADER rollups per source; posts after the close roll to the next trading day so day-t features only see pre-close posts); prefixed blocks so ablation partitions cleanly |
