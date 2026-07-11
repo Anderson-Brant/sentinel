@@ -10,6 +10,8 @@ import pytest
 from sentinel.fundamental.valuation import (
     FundamentalsSnapshot,
     _history_percentile,
+    _ordinal,
+    _pctile_grade,
     compute_valuation,
 )
 
@@ -113,6 +115,28 @@ def test_grade_uses_percentiles_and_peg():
     v_cheap = compute_valuation(cheap)
     assert v_cheap.grade is not None
     assert v_cheap.grade.startswith("A")
+
+
+def test_pctile_grade_calibration():
+    # Middle of a stock's own range is a middle grade, not a failing one.
+    assert _pctile_grade(0) == "A+"
+    assert _pctile_grade(30) == "B+"
+    assert _pctile_grade(50) == "B-"
+    assert _pctile_grade(70) == "C"
+    assert _pctile_grade(83) == "C-"
+    assert _pctile_grade(95) == "D"
+    assert _pctile_grade(99) == "F"
+
+
+def test_ordinal_suffixes():
+    assert _ordinal(1) == "1st"
+    assert _ordinal(2) == "2nd"
+    assert _ordinal(3) == "3rd"
+    assert _ordinal(11) == "11th"
+    assert _ordinal(12) == "12th"
+    assert _ordinal(78) == "78th"
+    assert _ordinal(83) == "83rd"
+    assert _ordinal(101) == "101st"
 
 
 def test_summary_mentions_pe_and_peg():

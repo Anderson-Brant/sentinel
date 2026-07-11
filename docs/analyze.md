@@ -71,9 +71,10 @@ available the summary says so and the grade is based on what exists.
 
 The current P/E, P/S, and P/FCF are ranked against the stock's own monthly
 ratio history (annual per-share fundamentals treated as a step function under
-monthly closes). The grade is `100 - mean(percentiles)`: trading at the 95th
-percentile of your own historical range grades worse than the 20th. A PEG
-below 1 bumps the grade a notch; above 3 costs one.
+monthly closes). The mean percentile maps to a grade on a scale calibrated so
+the middle of a stock's own range reads as a middle grade: bottom 5% of its
+range is A+, 50th percentile is B-, and only the most expensive decile grades
+D or F. A PEG below 1 bumps the grade a notch; above 3 costs one.
 
 Sector-relative grading (per the methodology decision log) arrives with the
 quality factor in v0.3. Until then "expensive vs itself" is the whole story,

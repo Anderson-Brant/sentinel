@@ -16,13 +16,36 @@ from datetime import date
 
 import pandas as pd
 
-from sentinel.fundamental.grades import grade_points, letter_grade, notch
+from sentinel.fundamental.grades import grade_points, notch
 from sentinel.utils.logging import get_logger
 
 log = get_logger(__name__)
 
 _PEG_CHEAP = 1.0
 _PEG_RICH = 3.0
+
+# Own-history percentile -> grade. Calibrated so the middle of a stock's own
+# valuation range reads as a middle grade, not a failing one: 50th pct = B-,
+# only the most expensive decile of its own history grades D/F.
+_PCTILE_CUTS: tuple[tuple[float, str], ...] = (
+    (5, "A+"), (15, "A"), (25, "A-"),
+    (35, "B+"), (45, "B"), (55, "B-"),
+    (65, "C+"), (75, "C"), (85, "C-"),
+    (92, "D+"), (97, "D"),
+)
+
+
+def _pctile_grade(pct: float) -> str:
+    for cut, letter in _PCTILE_CUTS:
+        if pct <= cut:
+            return letter
+    return "F"
+
+
+def _ordinal(n: float) -> str:
+    i = int(round(n))
+    suffix = "th" if 10 <= i % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(i % 10, "th")
+    return f"{i}{suffix}"
 
 
 @dataclass
@@ -151,8 +174,8 @@ def compute_valuation(snap: FundamentalsSnapshot) -> ValuationScore:
     grade: str | None = None
     score: float | None = None
     if percentiles:
-        score = 100.0 - sum(percentiles.values()) / len(percentiles)
-        grade = letter_grade(score)
+        mean_pct = sum(percentiles.values()) / len(percentiles)
+        grade = _pctile_grade(mean_pct)
         if peg is not None and peg < _PEG_CHEAP:
             grade = notch(grade, +1)
         elif peg is not None and peg > _PEG_RICH:
@@ -163,12 +186,12 @@ def compute_valuation(snap: FundamentalsSnapshot) -> ValuationScore:
     if pe is not None:
         txt = f"P/E {pe:.0f}"
         if pe_pct is not None:
-            txt += f" ({pe_pct:.0f}th pct vs own history)"
+            txt += f" ({_ordinal(pe_pct)} pct vs own history)"
         parts.append(txt)
     elif ps is not None:
         txt = f"P/S {ps:.1f}"
         if ps_pct is not None:
-            txt += f" ({ps_pct:.0f}th pct vs own history)"
+            txt += f" ({_ordinal(ps_pct)} pct vs own history)"
         parts.append(txt)
     if peg is not None:
         parts.append(f"PEG {peg:.1f}")
