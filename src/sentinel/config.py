@@ -27,7 +27,6 @@ def repo_root() -> Path:
     for parent in (here, *here.parents):
         if (parent / "pyproject.toml").exists():
             return parent
-    # Fall back to cwd if we're installed site-packages style.
     return Path.cwd()
 
 

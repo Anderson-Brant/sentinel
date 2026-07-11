@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-> **v0.1.0 shipped.** Full MVP loop runs on equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks. Pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in). Multi-stage Docker image + Fly.io deploy recipe.
+> **v0.2.0 shipped.** New `sentinel analyze` long-term scorecard (price history + valuation rows live, quality/insiders/competitive next). The v0.1 loop still runs end-to-end: equities (via `yfinance`) and crypto (via CCXT) with Reddit + X/Twitter sentiment as parallel optional blocks, pluggable storage (DuckDB default, Postgres / TimescaleDB opt-in), multi-stage Docker image + Fly.io deploy recipe.
 
 ## What it does
 
@@ -53,6 +53,7 @@ More captured output from every major command lives in [`docs/sample-outputs.md`
 pip install -e ".[dev]"
 
 sentinel demo SPY                                    # end-to-end smoke run
+sentinel analyze AAPL                                # long-term scorecard (docs/analyze.md)
 sentinel ingest prices SPY --start 2015-01-01
 sentinel ingest crypto BTC-USD --start 2020-01-01    # CCXT, Binance by default
 sentinel features build SPY --with-sentiment
@@ -69,6 +70,7 @@ Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra
 
 | Layer | What you get |
 |---|---|
+| **Analysis** | `sentinel analyze TICKER`: long-term scorecard, letter grade + one line of evidence per dimension. Price history (multi-horizon CAGR, drawdown/recovery) and valuation (ratios + percentile vs own history) today; quality, insiders, competitive position land next ([docs/analyze.md](docs/analyze.md)) |
 | **Ingestion** | Equities via `yfinance`; crypto via `ccxt` (any exchange, BTC-USD ↔ BTC/USDT symbol normalization); Reddit via `praw` with cashtag / whitelist extraction; X/Twitter via `tweepy` v2 with engagement-weighted sentiment |
 | **Storage** | Pluggable `Store` protocol. DuckDB (default, zero-setup). Postgres / TimescaleDB opt-in; hypertables when the extension is live, plain tables otherwise |
 | **Features** | Technical (returns, SMA/EMA, realized vol, momentum, volume z-scores); sentiment (VADER rollups per source; posts after the close roll to the next trading day so day-t features only see pre-close posts); prefixed blocks so ablation partitions cleanly |

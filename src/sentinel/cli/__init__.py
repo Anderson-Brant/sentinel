@@ -27,6 +27,7 @@ from rich.console import Console
 
 from sentinel import __version__
 from sentinel.cli.analysis import ablate, backtest, regimes
+from sentinel.cli.analyze import analyze
 from sentinel.cli.demo import demo
 from sentinel.cli.features import features_app
 from sentinel.cli.ingest import ingest_app, score_reddit_sentiment
@@ -56,6 +57,7 @@ def version() -> None:
 
 
 app.command("score-sentiment")(score_reddit_sentiment)
+app.command()(analyze)
 app.command()(train)
 app.command()(evaluate)
 app.command()(backtest)

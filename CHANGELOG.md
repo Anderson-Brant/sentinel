@@ -4,7 +4,19 @@ All notable changes to Sentinel will be documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-11
+### Added
+- `sentinel analyze TICKER`: long-term analysis scorecard (first slice of
+  the v0.2 repositioning). Five rows: quality, valuation, price history,
+  insiders, competitive; valuation and price history are real, the rest
+  render as pending until their milestones land. Price history grades
+  1y/3y/5y/10y CAGR against absolute thresholds with a deep-drawdown
+  penalty; valuation ranks current P/E / P/S / P/FCF against the stock's
+  own monthly ratio history with a PEG adjustment. `--detail price` /
+  `--detail valuation` expand a row; `--offline` skips network fetches.
+  New modules: `sentinel.fundamental` (grades, price_history, valuation)
+  and `sentinel.analyze` (assembly, rendering). See `docs/analyze.md`.
+
 ### Removed
 - finBERT scorer and the `[transformers]` extra. The transformer path added
   ~2GB of torch for a scorer that never made it into the evaluation protocol;
