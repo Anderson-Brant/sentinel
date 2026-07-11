@@ -1,14 +1,22 @@
 # Methodology
 
-This document describes the experimental design Sentinel is **intended
-to execute**: the universe, time ranges, evaluation protocol, and
-decision rules we use to call something a "real" finding vs. noise.
+This document describes the experimental design for Sentinel's
+short-horizon prediction study: the universe, time ranges, evaluation
+protocol, and decision rules we use to call something a "real" finding
+vs. noise. It governs `train`, `evaluate`, `backtest`, `ablate`, and
+`regimes`.
+
+The long-term analysis scorecard (`sentinel analyze`) is a different
+kind of tool with different rules; its grading methodology lives in
+[`analyze.md`](./analyze.md). The scorecard describes, the pipeline
+predicts, and the standards of evidence for prediction are much
+stricter. That's what the rest of this document is about.
 
 The platform is feature-complete against this design. A study writeup,
 which is actual findings from running the protocol below, is a separate
-artifact and is not included in this v0.1 release. Treating the platform
-and the study as different deliverables keeps the engineering claims
-honest: *this ships, this works, this is what it's for*.
+artifact and hasn't shipped. Treating the platform and the study as
+different deliverables keeps the engineering claims honest: *this
+ships, this works, this is what it's for*.
 
 ## Problem framing
 

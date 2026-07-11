@@ -33,6 +33,8 @@ src/sentinel/
 ├── config.py           Pydantic settings (merges YAML + env + defaults)
 ├── ingestion/          Data adapters: yfinance, ccxt, reddit, twitter
 ├── storage/            Store protocol + DuckDB + Postgres backends
+├── fundamental/        Scorecard rows: quality, valuation, price history, insiders, competitive
+├── analyze/            Scorecard assembly (Analysis dataclass) + rendering
 ├── features/           Technical + sentiment feature blocks
 ├── models/             Registry + baselines + GBM adapters
 ├── evaluation/         Walk-forward / rolling-origin CV
@@ -41,6 +43,14 @@ src/sentinel/
 ├── reporting/          Rich tables
 └── utils/              Logging, paths
 ```
+
+The `fundamental/` modules follow one pattern worth knowing before you
+touch them: every scorecard row is a pure `compute_*` function over
+plain inputs (a `FundamentalsSnapshot`, a prices frame, a transactions
+frame), with any network fetch isolated in a thin `fetch_*` adapter.
+Scoring logic is tested offline with synthetic data; adapters stay
+small enough to not need tests of their own. Keep that split if you add
+a row or extend one.
 
 ## Testing
 

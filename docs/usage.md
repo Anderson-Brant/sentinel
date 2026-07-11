@@ -50,7 +50,7 @@ This downloads all the libraries Sentinel needs (pandas, scikit-learn, yfinance,
 
 The `-e` means "editable", so if you change the source code, the changes take effect immediately without reinstalling.
 
-When it finishes you'll see `Successfully installed sentinel-0.1.1 ...`. Done with setup.
+When it finishes you'll see `Successfully installed sentinel-...` with the current version. Done with setup.
 
 ## Part 2: Every time you want to use Sentinel
 
@@ -69,9 +69,27 @@ When you're done using Sentinel, you can either close the terminal or type:
 deactivate
 ```
 
-## Part 3: The one command that does everything
+## Part 3: The command you'll use most
 
-This is the fastest way to see what Sentinel can do. It ingests data, builds features, trains a model, evaluates it, backtests it as a trading strategy, and prints a prediction, all in one shot.
+```
+sentinel analyze AAPL
+```
+
+Prints a scorecard for the stock: five letter grades covering business quality, valuation, long-term price history, insider activity, and competitive position, each with one line of evidence. First run on a new ticker downloads its price history (a few seconds); after that it's fast.
+
+Drill into any row for the numbers behind the grade:
+
+```
+sentinel analyze AAPL --detail quality
+sentinel analyze AAPL --detail valuation
+sentinel analyze AAPL --detail insiders
+```
+
+What the grades mean and where the data comes from is written up in [`analyze.md`](analyze.md). The short version: A on valuation means cheap by the stock's own five-year standards, A on price history means it compounded over 15% a year for a decade, and no row tells you to buy anything.
+
+## Part 4: The prediction pipeline in one command
+
+Sentinel's other half is an ML pipeline that tries to predict tomorrow's direction. This command ingests data, builds features, trains a model, evaluates it, backtests it as a trading strategy, and prints a prediction, all in one shot:
 
 ```
 sentinel demo SPY
@@ -89,7 +107,7 @@ sentinel demo BTC-USD     # Bitcoin
 
 This takes 30 seconds to 2 minutes depending on the stock. When it finishes you'll see a prediction table at the bottom showing the model's guess for whether the stock goes up or down tomorrow.
 
-## Part 4: Running the steps individually
+## Part 5: Running the steps individually
 
 `sentinel demo` runs six steps back-to-back. Here's how to run each one by itself, which is useful when you want more control (e.g., a fancier model, a different backtest threshold, comparing strategies).
 
@@ -175,7 +193,7 @@ sentinel predict AAPL
 
 Uses your saved model to produce a prediction for the most recent trading day, i.e. "probability the stock goes up tomorrow."
 
-## Part 5: Bonus commands
+## Part 6: Bonus commands
 
 ### See which version is installed
 
@@ -219,7 +237,7 @@ sentinel backtest --help
 sentinel ingest prices --help
 ```
 
-## Part 6: Reading the output
+## Part 7: Reading the output
 
 ### Training output
 
@@ -246,7 +264,7 @@ The backtest table shows strategy metrics side-by-side with buy-and-hold:
 
 **Reality check:** any honest strategy on public equity data with realistic costs will struggle to beat buy-and-hold. If you see a backtest claiming Sharpe 3+ with low turnover, something's wrong (usually look-ahead bias or overfitting). Sentinel's evaluation is walk-forward specifically to prevent that, so the numbers you see are closer to reality than most backtest results floating around online.
 
-## Part 7: Common problems and fixes
+## Part 8: Common problems and fixes
 
 ### `zsh: command not found: sentinel`
 
@@ -296,18 +314,20 @@ The model name must match between train and predict/explain.
 
 Yahoo Finance is rate-limiting or down. Wait a few minutes and try again. If it keeps happening, check `https://finance.yahoo.com/quote/SPY` in a browser. If that doesn't load either, it's a Yahoo outage, not your fault.
 
-## Part 8: What to do next
+## Part 9: What to do next
 
 Once the basics work, interesting experiments to try:
 
-1. **Run the demo on 5 to 10 different tickers.** See which ones the model seems to understand and which it doesn't. Tech mega-caps usually work better than small-caps with low volume.
+1. **Analyze the stocks you actually own.** Run `sentinel analyze` on your real holdings and see whether the grades match your reasons for owning them. A D on valuation for a stock you bought as a value play is worth sitting with.
 
-2. **Compare models.** Run `sentinel train SYMBOL --model logistic`, then `--model random_forest`, then `--model xgboost`. Check `sentinel evaluate` results for each. Usually xgboost wins marginally, but not always.
+2. **Run the demo on 5 to 10 different tickers.** See which ones the model seems to understand and which it doesn't. Tech mega-caps usually work better than small-caps with low volume.
 
-3. **Tune the backtest.** Try higher thresholds like `--long-threshold 0.6`. More selective entries usually mean fewer trades but higher average quality. See what happens to Sharpe.
+3. **Compare models.** Run `sentinel train SYMBOL --model logistic`, then `--model random_forest`, then `--model xgboost`. Check `sentinel evaluate` results for each. Usually xgboost wins marginally, but not always.
 
-4. **Look at feature importance.** Run `sentinel explain AAPL` and see which indicators the model actually leans on. If it's leaning hard on one feature, that's worth investigating: could be signal, could be a data leak.
+4. **Tune the backtest.** Try higher thresholds like `--long-threshold 0.6`. More selective entries usually mean fewer trades but higher average quality. See what happens to Sharpe.
 
-5. **Compare stocks vs crypto.** `sentinel demo BTC-USD` has a different volatility profile and different cost structure (use `--cost-bps 10` for crypto to be realistic).
+5. **Look at feature importance.** Run `sentinel explain AAPL` and see which indicators the model actually leans on. If it's leaning hard on one feature, that's worth investigating: could be signal, could be a data leak.
 
-6. **Try the sentiment workflow.** If you have Reddit API credentials configured, the `ablate` command is the most interesting thing in the repo. It tells you whether social sentiment is actually adding predictive value or just noise.
+6. **Compare stocks vs crypto.** `sentinel demo BTC-USD` has a different volatility profile and different cost structure (use `--cost-bps 10` for crypto to be realistic).
+
+7. **Try the sentiment workflow.** If you have Reddit API credentials configured, the `ablate` command is the most interesting thing in the repo. It tells you whether social sentiment is actually adding predictive value or just noise.

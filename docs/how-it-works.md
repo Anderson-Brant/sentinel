@@ -4,11 +4,19 @@ A plain-English tour of what Sentinel actually does under the hood: the pipeline
 
 If you just want to run commands, see [`usage.md`](usage.md). This document is for people who want to understand *why* the commands produce what they produce.
 
-## Part 1: The big picture
+## Part 0: Two tools in one binary
 
-Sentinel answers one question: **"Is this stock more likely to go up or down tomorrow?"**
+Sentinel answers two different questions, and it matters which one you're asking.
 
-It does that in six stages. Each stage's output is the next stage's input.
+**"Should I own this stock for years?"** is the `sentinel analyze` question. It doesn't predict anything. It pulls a decade of prices plus current fundamentals and grades the ticker on five dimensions: how good the business is, how expensive the stock is relative to its own history, what long-term holders have actually earned, whether insiders are buying or dumping, and how it stacks up against its sector. The grading rules, the data sources, and their limits are all in [`analyze.md`](analyze.md); that document is the companion to this one for the scorecard side.
+
+**"Is this stock more likely to go up or down tomorrow?"** is what the rest of this document covers: the ML pipeline behind `demo`, `train`, `evaluate`, `backtest`, and friends. It exists to answer that question without the usual self-deception, and mostly it will tell you the honest answer, which is "barely better than a coin flip, if that."
+
+Both share the same price database, so ingesting a symbol once feeds both.
+
+## Part 1: The prediction pipeline
+
+The pipeline runs in six stages. Each stage's output is the next stage's input.
 
 ```
 ┌─────────┐   ┌──────────┐   ┌──────┐   ┌──────────┐   ┌─────────┐   ┌─────────┐
@@ -39,7 +47,7 @@ Raw OHLCV data from Yahoo Finance. One row per `(symbol, date)`.
 | `high`      | DOUBLE  | Highest trade of the day.                                                  |
 | `low`       | DOUBLE  | Lowest trade of the day.                                                   |
 | `close`     | DOUBLE  | Last trade of the day. This is what most calculations use.                 |
-| `adj_close` | DOUBLE  | Close adjusted for dividends and splits. Available but not used for now.   |
+| `adj_close` | DOUBLE  | Close adjusted for dividends and splits. Used by the analyze scorecard's CAGR math. |
 | `volume`    | DOUBLE  | Total shares traded that day.                                              |
 
 ### 2.2 The `features` table

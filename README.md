@@ -1,6 +1,6 @@
 # Sentinel
 
-**Market intelligence and stock prediction platform.** Equities, crypto, and social sentiment in one honest research pipeline: ingest, features, walk-forward train, evaluate, backtest, end-to-end from the CLI.
+**Long-term stock analysis from the command line.** One command grades a ticker on quality, valuation, price history, insider activity, and competitive position, each with a line of evidence. Underneath it sits a full ML research pipeline: multi-source ingest, walk-forward evaluation, costed backtests.
 
 [![CI](https://github.com/Anderson-Brant/sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Anderson-Brant/sentinel/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -10,18 +10,41 @@
 
 ## What it does
 
-Most "stock predictor" projects use one data source, a single train/test split, and one model. Sentinel is built to avoid those mistakes:
+Sentinel has two lenses on the same data.
+
+The first is the one you'd actually open on a weekend: `sentinel analyze` produces a dense scorecard for long-term investing decisions. Not a price prediction, not a buy signal. A structured read on whether a business is good, whether the price is high by its own standards, what the stock has done for holders over a decade, and what the people running it are doing with their own shares. You make the call; the tool's job is to make sure you're looking at the right numbers.
+
+The second is a short-horizon prediction research pipeline, and it's built around the ways that kind of project usually lies to its author:
 
 - **Multi-source by design.** Equities, crypto, Reddit, and X/Twitter feed the same feature table, and every sentiment block is cleanly separable for ablation.
 - **No leakage.** Walk-forward / rolling-origin CV is the only accepted evaluation protocol. Features only use information available at time *t*.
 - **Baselines first.** Every model is compared against `predict_majority`, `predict_prev_sign`, and buy-and-hold. If the fancy model can't beat the naive rule, that's a finding, not a failure to hide.
 - **Honest evaluation.** Ablations (sentiment on/off), regime slicing (vol terciles × bull/bear), realistic transaction costs, vol-targeted sizing.
 
-The full evaluation protocol and the rules for what counts as a finding vs. noise are written up in [`docs/methodology.md`](docs/methodology.md).
+The scorecard's grading rules are in [`docs/analyze.md`](docs/analyze.md). The evaluation protocol and the rules for what counts as a finding vs. noise are in [`docs/methodology.md`](docs/methodology.md).
 
 ---
 
 ## See it in action
+
+```
+$ sentinel analyze NVDA
+
+NVDA · NVIDIA Corporation · Semiconductors · $5.1T mcap · as of 2026-07-11
+
+Quality        B+    ROIC 65%. Gross margin 71%, variable. Net cash. Revenue +100%/yr.
+Valuation      A     P/E 32 (0th pct vs own history). PEG 0.2.
+Price hist     A     10y CAGR 67%. Max DD 90% (recovered in 49mo).
+Insiders       B-    Net selling 0.0% of shares over 6mo (neutral). 0 buys / 14 sells.
+Competitive    A+    Revenue +100%/yr vs sector +10%. Op margin 60% vs sector 22%.
+
+Composite: A-
+Related: SPY, MSFT, AAPL, AMZN, TSLA
+```
+
+Every row drills down: `sentinel analyze NVDA --detail valuation` shows all the ratios and percentiles behind that A.
+
+The prediction pipeline runs end-to-end with one command:
 
 ```bash
 $ sentinel demo SPY
@@ -52,8 +75,9 @@ More captured output from every major command lives in [`docs/sample-outputs.md`
 ```bash
 pip install -e ".[dev]"
 
-sentinel demo SPY                                    # end-to-end smoke run
 sentinel analyze AAPL                                # long-term scorecard (docs/analyze.md)
+sentinel analyze AAPL --detail quality               # drill into one row
+sentinel demo SPY                                    # prediction pipeline, end to end
 sentinel ingest prices SPY --start 2015-01-01
 sentinel ingest crypto BTC-USD --start 2020-01-01    # CCXT, Binance by default
 sentinel features build SPY --with-sentiment
@@ -82,7 +106,7 @@ Requires Python 3.11+. Install the optional extras you need: `social`, `ml-extra
 | **Scheduling** | Declarative `scheduler.jobs` YAML; `ingest-{prices,reddit,twitter,crypto}` / `score-sentiment` / `build-features` kinds; durable `job_runs` log; failures retry, never abort the loop |
 | **Deployment** | Multi-stage Docker image (slim Python, non-root, tini, healthcheck); docker-compose with DuckDB default + opt-in `postgres` / `mlflow` profiles; Fly.io recipe |
 
-Full v0.1 release notes are in [`CHANGELOG.md`](CHANGELOG.md).
+Release-by-release notes are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Running scheduled jobs
 
@@ -200,6 +224,8 @@ src/sentinel/
 ├── config.py           Pydantic settings
 ├── ingestion/          yfinance + ccxt + reddit + twitter adapters
 ├── storage/            Pluggable Store (DuckDB default, Postgres/Timescale opt-in)
+├── fundamental/        Scorecard rows: quality, valuation, price history, insiders, competitive
+├── analyze/            Scorecard assembly + rendering
 ├── features/           Technical, sentiment, target generation
 ├── models/             Baselines + GBM adapters + registry
 ├── evaluation/         Walk-forward / rolling-origin CV
@@ -211,7 +237,8 @@ src/sentinel/
 
 ## Further reading
 
-- [`CHANGELOG.md`](CHANGELOG.md): what shipped in v0.1.0.
+- [`CHANGELOG.md`](CHANGELOG.md): what shipped, release by release.
+- [`docs/analyze.md`](docs/analyze.md): the scorecard's grading rules, data sources, and their limits. Read this before trusting a letter grade.
 - [`docs/methodology.md`](docs/methodology.md): universe, walk-forward protocol, and decision rules for what counts as a finding. **Read this before interpreting any backtest number.**
 - [`docs/sample-outputs.md`](docs/sample-outputs.md): captured Rich output for every major CLI command.
 - [`deploy/`](deploy/): single-machine deployment recipes (Fly.io today).
@@ -219,7 +246,7 @@ src/sentinel/
 
 ## Risks and honest caveats
 
-Markets are noisy; relationships decay; social hype is often *reactive* rather than predictive; backtests can look great and still be fake if evaluation is sloppy. Sentinel is a research and engineering project, not a trading system, not financial advice. Any real-money decision based on its output would be irresponsible.
+Markets are noisy; relationships decay; social hype is often *reactive* rather than predictive; backtests can look great and still be fake if evaluation is sloppy. The scorecard's grades are only as good as free data allows: yfinance statements go back four or five years, sector baselines are coarse, and none of it substitutes for reading a filing. Sentinel is a research and engineering project, not a trading system, not financial advice. Any real-money decision based on its output alone would be irresponsible.
 
 ## License
 

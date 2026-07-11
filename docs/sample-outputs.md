@@ -8,6 +8,55 @@ discussion of what Sentinel should actually *find* on real data, see
 
 All output is colorized Rich in a real terminal; colors are stripped here.
 
+## `sentinel analyze NVDA`
+
+The long-term scorecard. Five graded dimensions, one line of evidence
+each, plus a composite and correlation-based related tickers. Grading
+rules are in [`analyze.md`](./analyze.md).
+
+```
+NVDA · NVIDIA Corporation · Semiconductors · $5.1T mcap · as of 2026-07-11
+
+Quality        B+    ROIC 65%. Gross margin 71%, variable. Net cash. Revenue +100%/yr.
+Valuation      A     P/E 32 (0th pct vs own history). PEG 0.2.
+Price hist     A     10y CAGR 67%. Max DD 90% (recovered in 49mo).
+Insiders       B-    Net selling 0.0% of shares over 6mo (neutral). 0 buys / 14 sells.
+Competitive    A+    Revenue +100%/yr vs sector +10%. Op margin 60% vs sector 22%.
+
+Composite: A-
+Related: SPY, MSFT, AAPL, AMZN, TSLA
+```
+
+## `sentinel analyze AAPL --detail valuation`
+
+Any row expands into its underlying numbers.
+
+```
+AAPL · Apple Inc. · Consumer Electronics · $4.6T mcap · as of 2026-07-11
+
+Quality        B     ROIC 77%. Gross margin 47%, stable. Net debt 0.1x EBITDA. Revenue +2%/yr.
+Valuation      D+    P/E 38 (83rd pct vs own history). PEG 1.8.
+Price hist     A+    10y CAGR 27%. Max DD 39% (recovered in 9mo).
+Insiders       B-    Net selling 0.0% of shares over 6mo (neutral). 0 buys / 7 sells.
+Competitive    C     Revenue +2%/yr vs sector +10%. Op margin 32% vs sector 22%.
+
+Composite: B-
+Related: SPY, MSFT, AMZN, TSLA
+
+                 Valuation detail
+┏━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Metric         ┃ Value ┃ Pctile vs own history ┃
+┡━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━┩
+│ P/E (trailing) │  37.8 │                    83 │
+│ P/S            │  10.9 │                    91 │
+│ P/FCF          │  41.2 │                    88 │
+│ EV/EBITDA      │  31.4 │                       │
+│ PEG            │   1.8 │                       │
+│ Dividend yield │ 0.41% │                       │
+│ Numeric score  │  68.5 │                       │
+└────────────────┴───────┴───────────────────────┘
+```
+
 ## `sentinel demo SPY`
 
 End-to-end smoke run: ingest, features, train, evaluate, backtest on
